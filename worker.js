@@ -98,13 +98,14 @@ export default {
       }
     }
 
-    // Serve static assets (Cloudflare Pages)
-    // If env.ASSETS is available (e.g. in Cloudflare Pages Functions), use it to fetch static assets
+    // Serve static assets and SPA fallback via Wrangler assets binding
     if (env.ASSETS) {
       return env.ASSETS.fetch(request);
     }
 
-    // Default response for non-proxy paths
-    return new Response('Not Found', { status: 404, headers: corsHeaders });
+    return new Response("Static assets binding is not configured.", {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "text/plain; charset=utf-8" },
+    });
   }
 };
