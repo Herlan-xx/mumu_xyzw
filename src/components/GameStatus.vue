@@ -170,24 +170,17 @@
 
     <!-- 盐场分组（包含盐场、周战绩、月战绩） -->
     <div class="salt-field-group" v-if="activeSection === 'saltFieldGroup'">
-      <div
-        class="sub-nav"
-        style="
-          padding: 8px;
-          background: var(--n-color);
-          display: flex;
-          justify-content: center;
-        "
-      >
+      <div class="sub-nav">
         <n-tabs
-          type="segment"
+          class="sub-nav-tabs"
+          type="line"
           animated
           v-model:value="saltFieldSubTab"
           size="small"
         >
           <n-tab-pane name="warrank" tab="盐场" />
-          <n-tab-pane name="weekBattle" tab="本周盐场战绩" />
-          <n-tab-pane name="monthBattle" tab="本月盐场战绩" />
+          <n-tab-pane name="weekBattle" tab="本周战绩" />
+          <n-tab-pane name="monthBattle" tab="本月战绩" />
           <n-tab-pane name="legionWarMap" tab="盐场地图" />
           <n-tab-pane name="legionWarStatistics" tab="盐场战况" />
         </n-tabs>
@@ -227,17 +220,10 @@
 
     <!-- 蟠桃园分组 -->
     <div class="peach-group" v-if="activeSection === 'peachGroup'">
-      <div
-        class="sub-nav"
-        style="
-          padding: 8px;
-          background: var(--n-color);
-          display: flex;
-          justify-content: center;
-        "
-      >
+      <div class="sub-nav">
         <n-tabs
-          type="segment"
+          class="sub-nav-tabs"
+          type="line"
           animated
           v-model:value="peachSubTab"
           size="small"
@@ -258,21 +244,19 @@
 
     <!-- 排行榜分组 -->
     <div class="rank-group" v-if="activeSection === 'rankGroup'">
-      <div
-        class="sub-nav"
-        style="
-          padding: 8px;
-          background: var(--n-color);
-          display: flex;
-          justify-content: center;
-        "
-      >
-        <n-tabs type="segment" animated v-model:value="rankSubTab" size="small">
+      <div class="sub-nav">
+        <n-tabs
+          class="sub-nav-tabs"
+          type="line"
+          animated
+          v-model:value="rankSubTab"
+          size="small"
+        >
           <n-tab-pane name="serverrank" tab="区服榜" />
           <n-tab-pane name="toprank" tab="巅峰榜" />
           <n-tab-pane name="topclubrank" tab="俱乐部榜" />
           <n-tab-pane name="goldclubrank" tab="黄金积分榜" />
-          <n-tab-pane name="greatRouteRank" tab="伟大航路积分榜" />
+          <n-tab-pane name="greatRouteRank" tab="伟大航路" />
         </n-tabs>
       </div>
 
@@ -827,6 +811,37 @@ onUnmounted(() => {
   flex-direction: column;
 }
 
+.sub-nav {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-light);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.sub-nav-tabs {
+  width: 100%;
+  min-width: 0;
+}
+
+.sub-nav-tabs :deep(.n-tabs-nav-scroll-wrapper),
+.sub-nav-tabs :deep(.n-tabs-nav) {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sub-nav-tabs :deep(.n-tabs-tab) {
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.sub-nav-tabs :deep(.n-tabs-pane-wrapper) {
+  display: none;
+}
+
 .monthly-tasks .description.muted {
   color: var(--text-tertiary);
   margin-top: var(--spacing-sm);
@@ -952,6 +967,17 @@ onUnmounted(() => {
 }
 
 // 响应式设计
+@media (max-width: 1024px) {
+  .sub-nav {
+    padding: var(--spacing-xs);
+  }
+
+  .sub-nav-tabs :deep(.n-tabs-tab) {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
+}
+
 @media (max-width: 768px) {
   .game-status-container {
     grid-template-columns: minmax(0, 1fr);

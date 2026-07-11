@@ -541,9 +541,9 @@ img {
   // Naive UI 弹窗
   .n-modal.n-modal--preset-card,
   .n-card.n-modal {
-    width: calc(100vw - 32px) !important;
-    max-width: calc(100vw - 32px) !important;
-    margin: 16px auto !important;
+    width: min(800px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 24px) !important;
+    margin: 12px auto !important;
   }
 
   .n-drawer {
@@ -553,6 +553,158 @@ img {
   // 防止 flex 子项撑破容器
   .n-space {
     max-width: 100%;
+  }
+}
+
+// 切磋/成员详情弹窗：真机适配（弹窗 teleport 到 body，必须全局样式）
+@media (max-width: 1024px) {
+  .player-duel-modal.n-modal {
+    max-width: calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 16px) !important;
+  }
+
+  .player-duel-modal .n-card,
+  .hero-detail-modal .n-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .player-duel-modal .n-card__content,
+  .hero-detail-modal .n-card__content {
+    max-height: calc(100dvh - 120px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+  }
+
+  .player-duel-modal .player-info-content,
+  .hero-detail-modal .hero-modal-content {
+    max-width: 100%;
+    overflow-x: hidden;
+    word-break: break-word;
+  }
+
+  .player-duel-modal .player-info-main {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .player-duel-modal .player-info-detail p,
+  .player-duel-modal .detail-row {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 12px;
+    word-break: break-word;
+  }
+
+  .player-duel-modal .detail-row {
+    display: flex;
+  }
+
+  .player-duel-modal .action-section {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px;
+  }
+
+  .player-duel-modal .action-section__controls {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    width: 100%;
+  }
+
+  .player-duel-modal .fight-count-container {
+    flex-wrap: wrap;
+    width: 100%;
+    margin-right: 0 !important;
+  }
+
+  .player-duel-modal .fight-count-input {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  .player-duel-modal .action-section > .n-button,
+  .player-duel-modal .action-section__controls .n-button {
+    width: 100%;
+  }
+
+  .player-duel-modal .progress-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .player-duel-modal .progress-stats {
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .player-duel-modal .result-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .player-duel-modal .result-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+  }
+
+  .player-duel-modal .summary-item {
+    min-width: 0;
+  }
+
+  .player-duel-modal .battle-details {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px;
+  }
+
+  .player-duel-modal .battle-side {
+    width: 100%;
+  }
+
+  .player-duel-modal .battle-vs {
+    align-self: center;
+    margin: 4px 0 !important;
+    transform: none;
+  }
+
+  .player-duel-modal .result-actions {
+    flex-direction: column;
+    gap: 8px;
+
+    .n-button {
+      width: 100%;
+    }
+  }
+
+  .player-duel-modal .hero-list {
+    grid-template-columns: 1fr !important;
+  }
+
+  .player-duel-modal .hero-stats {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .hero-detail-modal .hero-modal-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .hero-detail-modal .equipment-grid {
+    grid-template-columns: 1fr !important;
   }
 }
 

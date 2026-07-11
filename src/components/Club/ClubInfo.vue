@@ -481,9 +481,10 @@
   <!-- 玩家信息模态框 -->
   <n-modal
     v-model:show="showPlayerInfoModal"
+    class="player-duel-modal"
     preset="card"
     title="成员信息"
-    :style="{ width: '800px' }"
+    :style="duelModalStyle"
     :bordered="false"
     :segmented="{ content: 'soft', footer: 'soft' }"
     :show-close="false"
@@ -614,7 +615,7 @@
     class="hero-detail-modal"
     preset="card"
     title="武将详情"
-    :style="{ width: '600px' }"
+    :style="heroModalStyle"
     :bordered="false"
     :segmented="{ content: 'soft', footer: 'soft' }"
   >
@@ -773,6 +774,16 @@ import { downloadCanvasAsImage } from "@/utils/imageExport";
 const tokenStore = useTokenStore();
 const message = useMessage();
 const dialog = useDialog();
+
+const duelModalStyle = {
+  width: "min(800px, calc(100vw - 24px))",
+  maxWidth: "calc(100vw - 24px)",
+};
+
+const heroModalStyle = {
+  width: "min(600px, calc(100vw - 24px))",
+  maxWidth: "calc(100vw - 24px)",
+};
 
 const info = computed(() => tokenStore.gameData?.legionInfo || null);
 const club = computed(() => info.value?.info || null);

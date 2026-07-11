@@ -273,8 +273,16 @@
     </div>
 
     <!-- 玩家信息模态框 -->
-    <n-modal v-model:show="showPlayerInfoModal" preset="card" title="对手信息" :style="{ width: '800px' }" :bordered="false"
-      :segmented="{ content: 'soft', footer: 'soft' }" :show-close="false">
+    <n-modal
+      v-model:show="showPlayerInfoModal"
+      class="player-duel-modal"
+      preset="card"
+      title="对手信息"
+      :style="duelModalStyle"
+      :bordered="false"
+      :segmented="{ content: 'soft', footer: 'soft' }"
+      :show-close="false"
+    >
       <template #header-extra>
         <span v-if="playerInfo" class="player-id">ID: {{ playerInfo.id }}</span>
       </template>
@@ -306,7 +314,7 @@
         </div>
 
         <div class="action-section">
-          <div style="display: flex; align-items: center; gap: 8px; flex: 1">
+          <div class="action-section__controls">
             <div class="fight-count-container">
               <label for="fightCount" class="fight-count-label">切磋次数:</label>
               <n-input id="fightCount" v-model:value="fightCount" type="number" placeholder="请输入切磋次数" min="1" max="100"
@@ -476,8 +484,15 @@
     </n-modal>
 
     <!-- 武将详情模态框 -->
-    <n-modal v-model:show="showHeroModal" class="hero-detail-modal" preset="card" title="武将详情"
-      :style="{ width: '600px' }" :bordered="false" :segmented="{ content: 'soft', footer: 'soft' }">
+    <n-modal
+      v-model:show="showHeroModal"
+      class="hero-detail-modal"
+      preset="card"
+      title="武将详情"
+      :style="heroModalStyle"
+      :bordered="false"
+      :segmented="{ content: 'soft', footer: 'soft' }"
+    >
       <div v-if="heroModealTemp" class="hero-modal-content">
         <div class="hero-modal-header">
           <n-avatar round :size="80" :src="heroModealTemp.heroAvate" class="hero-modal-avatar" />
@@ -620,6 +635,17 @@ import {
   copyToClipboard
 } from '@/utils/clubBattleUtils'
 const message = useMessage();
+
+const duelModalStyle = {
+  width: "min(800px, calc(100vw - 24px))",
+  maxWidth: "calc(100vw - 24px)",
+};
+
+const heroModalStyle = {
+  width: "min(600px, calc(100vw - 24px))",
+  maxWidth: "calc(100vw - 24px)",
+};
+
 const tokenStore = useTokenStore();
 const info = computed(() => tokenStore.gameData?.legionInfo || null);
 const club = computed(() => info.value?.info || null);

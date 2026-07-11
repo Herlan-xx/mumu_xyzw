@@ -509,9 +509,10 @@
     <!-- 玩家信息模态框 -->
     <n-modal
       v-model:show="showPlayerInfoModal"
+      class="player-duel-modal"
       preset="card"
       title="对手信息"
-      :style="{ width: '800px' }"
+      :style="duelModalStyle"
       :bordered="false"
       :segmented="{ content: 'soft', footer: 'soft' }"
       :show-close="false"
@@ -557,7 +558,7 @@
         </div>
 
         <div class="action-section">
-          <div style="display: flex; align-items: center; gap: 8px; flex: 1">
+          <div class="action-section__controls">
             <div class="fight-count-container">
               <label for="fightCount" class="fight-count-label"
                 >切磋次数:</label
@@ -809,7 +810,7 @@
       size="large"
       :bordered="false"
       :segmented="{ content: 'soft', footer: 'soft' }"
-      :style="{ width: '600px' }"
+      :style="heroModalStyle"
       :show-close="true"
     >
       <template #header-extra>
@@ -1022,6 +1023,16 @@ const exportDom = ref(null);
 const emit = defineEmits(["update:visible"]);
 
 const message = useMessage();
+
+const duelModalStyle = {
+  width: "min(800px, calc(100vw - 24px))",
+  maxWidth: "calc(100vw - 24px)",
+};
+
+const heroModalStyle = {
+  width: "min(600px, calc(100vw - 24px))",
+  maxWidth: "calc(100vw - 24px)",
+};
 const tokenStore = useTokenStore();
 
 const showModal = computed({
