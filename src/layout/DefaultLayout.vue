@@ -156,12 +156,18 @@
           </n-icon>
           <span>消息测试</span>
         </router-link>
-          <router-link to="/admin/legion-war" class="nav-item" active-class="active"  v-if="isNowInLegionWarTime()" >
-            <n-icon>
-              <LockOpen />
-            </n-icon>
-            <span>实时盐场</span>
-          </router-link>
+        <router-link
+          to="/admin/legion-war"
+          class="drawer-item"
+          active-class="active"
+          v-if="isNowInLegionWarTime()"
+          @click="isMobileMenuOpen = false"
+        >
+          <n-icon>
+            <LockOpen />
+          </n-icon>
+          <span>实时盐场</span>
+        </router-link>
         <router-link
           to="/admin/profile"
           class="drawer-item"
@@ -332,7 +338,16 @@ const handleUserAction = async (key) => {
   color: var(--text-primary);
 }
 
+.main {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 @media (max-width: 768px) {
+  .dashboard-nav {
+    padding: 0 var(--spacing-sm);
+  }
+
   .nav-item span {
     display: none;
   }
@@ -356,6 +371,23 @@ const handleUserAction = async (key) => {
 
   .brand-toggle {
     display: inline-flex;
+  }
+
+  .username {
+    display: none;
+  }
+
+  .nav-user {
+    gap: var(--spacing-xs);
+    margin-left: auto;
+  }
+
+  .nav-brand {
+    margin-right: var(--spacing-sm);
+  }
+
+  .main {
+    padding: 0;
   }
 }
 

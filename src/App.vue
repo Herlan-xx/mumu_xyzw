@@ -207,6 +207,8 @@ body[data-theme="dark"] .n-popover-container {
   min-height: 100vh;
   background: var(--app-background);
   color: var(--text-color);
+  overflow-x: hidden;
+  max-width: 100vw;
   transition:
     background 0.3s ease,
     color 0.3s ease;
@@ -222,6 +224,8 @@ body[data-theme="dark"] .n-popover-container {
 html,
 body {
   height: 100%;
+  overflow-x: hidden;
+  max-width: 100vw;
   font-family:
     "SF Pro Display",
     -apple-system,

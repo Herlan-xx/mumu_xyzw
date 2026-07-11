@@ -1745,6 +1745,9 @@ onUnmounted(() => {
     margin-top: var(--spacing-md);
     display: flex;
     justify-content: center;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -1892,7 +1895,7 @@ onUnmounted(() => {
 
 .tokens-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 350px), 1fr));
   gap: var(--spacing-lg);
   overflow-y: auto;
   padding-right: var(--spacing-sm);
@@ -2240,8 +2243,12 @@ onUnmounted(() => {
 }
 
 @media (max-width: 768px) {
+  .token-import-page {
+    padding: var(--spacing-md) 0;
+  }
+
   .container {
-    padding: 0 var(--spacing-md);
+    padding: 0 var(--spacing-sm);
   }
 
   .tokens-grid {
@@ -2256,6 +2263,27 @@ onUnmounted(() => {
     flex-direction: column;
     gap: var(--spacing-md);
     align-items: stretch;
+    margin: 0 0 var(--spacing-md);
+    padding: var(--spacing-md) 0;
+  }
+
+  .section-header :deep(.n-space) {
+    flex-wrap: wrap;
+    gap: 8px !important;
+  }
+
+  .section-header h2 {
+    font-size: var(--font-size-lg);
+    width: 100%;
+  }
+
+  .import-method-tabs {
+    justify-content: flex-start;
+
+    :deep(.n-radio-group) {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
   }
 
   .token-timestamps {

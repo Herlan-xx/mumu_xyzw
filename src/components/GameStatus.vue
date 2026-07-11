@@ -708,7 +708,7 @@ onUnmounted(() => {
 <style scoped lang="scss">
 .game-status-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: var(--spacing-lg);
   padding: var(--spacing-lg);
 
@@ -721,7 +721,7 @@ onUnmounted(() => {
 
   // 在中等屏幕上确保有足够空间
   @media (max-width: 1200px) {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   }
 
   // 在较小屏幕上使用单列布局
@@ -780,7 +780,21 @@ onUnmounted(() => {
   margin: 0 var(--spacing-sm) var(--spacing-md) var(--spacing-sm);
   grid-column: 1 / -1;
   border-bottom: 1px solid var(--border-light);
-  overflow: auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+.section-tabs :deep(.n-tabs-nav-scroll-wrapper),
+.section-tabs :deep(.n-tabs-nav) {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.section-tabs :deep(.n-tabs-tab) {
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: var(--spacing-sm) var(--spacing-md);
 }
 
 .section-tabs :deep(.n-tabs-pane-wrapper) {
@@ -936,8 +950,13 @@ onUnmounted(() => {
 // 响应式设计
 @media (max-width: 768px) {
   .game-status-container {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     padding: var(--spacing-sm);
+  }
+
+  .section-tabs :deep(.n-tabs-tab) {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
   }
 
   .status-card {

@@ -51,5 +51,19 @@ const applyTheme = () => {
 
 applyTheme();
 
+// 锁定 viewport，防止 cocos 引擎脚本覆盖导致移动端缩放异常
+const lockViewport = () => {
+  const meta = document.querySelector('meta[name="viewport"]');
+  if (meta) {
+    meta.setAttribute(
+      "content",
+      "width=device-width, initial-scale=1.0, viewport-fit=cover",
+    );
+  }
+};
+
+lockViewport();
+window.addEventListener("load", lockViewport);
+
 // 挂载应用
 app.mount("#app");
