@@ -236,6 +236,12 @@ const handleUserAction = async (key) => {
 </script>
 
 <style scoped lang="scss">
+.default-layout {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 // 导航栏
 .dashboard-nav {
   background: var(--bg-primary);
@@ -339,8 +345,8 @@ const handleUserAction = async (key) => {
 }
 
 .main {
-  overflow-x: hidden;
-  max-width: 100vw;
+  width: 100%;
+  max-width: 100%;
 }
 
 @media (max-width: 768px) {

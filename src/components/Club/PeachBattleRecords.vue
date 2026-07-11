@@ -231,58 +231,203 @@
           <div class="god-rankings">
             <div class="god-ranking own">
               <div class="god-ranking-title">我方战神榜</div>
-              <div class="god-ranking-content">
-                <div class="god-ranking-header">
-                  <div class="god-rank-number">排名</div>
-                  <div class="header-avatar"></div>
-                  <div class="header-player">玩家</div>
-                  <div class="header-stat">击杀</div>
-                  <div class="header-stat">连杀</div>
-                  <div class="header-stat">抢船</div>
-                  <div class="header-stat">复活</div>
-                  <div class="header-stat">K/D</div>
-                </div>
-                <div v-for="(player, index) in battleRecords.ownClub.godRank" :key="index" class="god-ranking-item">
-                  <div class="god-rank-number">{{ index + 1 }}</div>
-                  <div class="player-avatar-cell">
-                    <img v-if="player.roleInfo.headImg" :src="player.roleInfo.headImg" :alt="player.roleInfo.name" class="player-avatar" @error="handleImageError">
-                    <div v-else class="player-avatar-placeholder">{{ player.roleInfo.name?.charAt(0) || '?' }}</div>
+              <div class="god-ranking-desktop">
+                <div class="god-ranking-content">
+                  <div class="god-ranking-header">
+                    <div class="god-rank-number">排名</div>
+                    <div class="header-avatar"></div>
+                    <div class="header-player">玩家</div>
+                    <div class="header-stat">击杀</div>
+                    <div class="header-stat">连杀</div>
+                    <div class="header-stat">抢船</div>
+                    <div class="header-stat">复活</div>
+                    <div class="header-stat">K/D</div>
                   </div>
-                  <span class="header-player">{{ player.roleInfo.name }}</span>
-                  <span class="player-stat">{{ player.killCnt || 0 }}</span>
-                  <span class="player-stat">{{ player.mCKCnt || 0 }}</span>
-                  <span class="player-stat">{{ player.carCnt || 0 }}</span>
-                  <span class="player-stat">{{ player.reviveCnt || 0 }}</span>
-                  <span class="player-stat">{{ player.kd || 0 }}</span>
+                  <div
+                    v-for="(player, index) in battleRecords.ownClub.godRank"
+                    :key="index"
+                    class="god-ranking-item"
+                  >
+                    <div class="god-rank-number">{{ index + 1 }}</div>
+                    <div class="player-avatar-cell">
+                      <img
+                        v-if="player.roleInfo.headImg"
+                        :src="player.roleInfo.headImg"
+                        :alt="player.roleInfo.name"
+                        class="player-avatar"
+                        @error="handleImageError"
+                      />
+                      <div v-else class="player-avatar-placeholder">
+                        {{ player.roleInfo.name?.charAt(0) || "?" }}
+                      </div>
+                    </div>
+                    <span class="header-player">{{ player.roleInfo.name }}</span>
+                    <span class="player-stat">{{ player.killCnt || 0 }}</span>
+                    <span class="player-stat">{{ player.mCKCnt || 0 }}</span>
+                    <span class="player-stat">{{ player.carCnt || 0 }}</span>
+                    <span class="player-stat">{{ player.reviveCnt || 0 }}</span>
+                    <span class="player-stat">{{ player.kd || 0 }}</span>
+                  </div>
                 </div>
               </div>
+              <div class="mobile-god-list">
+                <article
+                  v-for="(player, index) in battleRecords.ownClub.godRank"
+                  :key="`own-god-${index}`"
+                  class="god-m-card"
+                  :class="{ 'is-open': expandedMembers.has(`own-${index}`) }"
+                >
+                  <button
+                    type="button"
+                    class="god-m-card__summary"
+                    @click="toggleMemberDetails(`own-${index}`)"
+                  >
+                    <div class="god-m-card__rank">{{ index + 1 }}</div>
+                    <div class="god-m-card__avatar">
+                      <img
+                        v-if="player.roleInfo.headImg"
+                        :src="player.roleInfo.headImg"
+                        :alt="player.roleInfo.name"
+                        class="player-avatar"
+                        @error="handleImageError"
+                      />
+                      <div v-else class="player-avatar-placeholder">
+                        {{ player.roleInfo.name?.charAt(0) || "?" }}
+                      </div>
+                    </div>
+                    <div class="god-m-card__main">
+                      <div class="god-m-card__name">
+                        {{ player.roleInfo.name }}
+                      </div>
+                      <div class="god-m-card__highlight">
+                        击杀 {{ player.killCnt || 0 }}
+                      </div>
+                    </div>
+                    <n-icon size="16" class="god-m-card__chevron">
+                      <ChevronUp v-if="expandedMembers.has(`own-${index}`)" />
+                      <ChevronDown v-else />
+                    </n-icon>
+                  </button>
+                  <div
+                    v-show="expandedMembers.has(`own-${index}`)"
+                    class="god-m-card__stats"
+                  >
+                    <div class="god-m-stat">
+                      <span>连杀</span><strong>{{ player.mCKCnt || 0 }}</strong>
+                    </div>
+                    <div class="god-m-stat">
+                      <span>抢船</span><strong>{{ player.carCnt || 0 }}</strong>
+                    </div>
+                    <div class="god-m-stat">
+                      <span>复活</span
+                      ><strong>{{ player.reviveCnt || 0 }}</strong>
+                    </div>
+                    <div class="god-m-stat">
+                      <span>K/D</span><strong>{{ player.kd || 0 }}</strong>
+                    </div>
+                  </div>
+                </article>
+              </div>
             </div>
+
             <div class="god-ranking opponent">
               <div class="god-ranking-title">敌方战神榜</div>
-              <div class="god-ranking-content">
-                <div class="god-ranking-header">
-                  <div class="god-rank-number">排名</div>
-                  <div class="header-avatar"></div>
-                  <div class="header-player">玩家</div>
-                  <div class="header-stat">击杀</div>
-                  <div class="header-stat">连杀</div>
-                  <div class="header-stat">抢船</div>
-                  <div class="header-stat">复活</div>
-                  <div class="header-stat">K/D</div>
-                </div>
-                <div v-for="(player, index) in battleRecords.opponentClub.godRank" :key="index" class="god-ranking-item">
-                  <div class="god-rank-number">{{ index + 1 }}</div>
-                  <div class="player-avatar-cell">
-                    <img v-if="player.roleInfo.headImg" :src="player.roleInfo.headImg" :alt="player.roleInfo.name" class="player-avatar" @error="handleImageError">
-                    <div v-else class="player-avatar-placeholder">{{ player.roleInfo.name?.charAt(0) || '?' }}</div>
+              <div class="god-ranking-desktop">
+                <div class="god-ranking-content">
+                  <div class="god-ranking-header">
+                    <div class="god-rank-number">排名</div>
+                    <div class="header-avatar"></div>
+                    <div class="header-player">玩家</div>
+                    <div class="header-stat">击杀</div>
+                    <div class="header-stat">连杀</div>
+                    <div class="header-stat">抢船</div>
+                    <div class="header-stat">复活</div>
+                    <div class="header-stat">K/D</div>
                   </div>
-                  <span class="header-player">{{ player.roleInfo.name }}</span>
-                  <span class="player-stat">{{ player.killCnt || 0 }}</span>
-                  <span class="player-stat">{{ player.mCKCnt || 0 }}</span>
-                  <span class="player-stat">{{ player.carCnt || 0 }}</span>
-                  <span class="player-stat">{{ player.reviveCnt || 0 }}</span>
-                  <span class="player-stat">{{ player.kd || 0 }}</span>
+                  <div
+                    v-for="(player, index) in battleRecords.opponentClub.godRank"
+                    :key="index"
+                    class="god-ranking-item"
+                  >
+                    <div class="god-rank-number">{{ index + 1 }}</div>
+                    <div class="player-avatar-cell">
+                      <img
+                        v-if="player.roleInfo.headImg"
+                        :src="player.roleInfo.headImg"
+                        :alt="player.roleInfo.name"
+                        class="player-avatar"
+                        @error="handleImageError"
+                      />
+                      <div v-else class="player-avatar-placeholder">
+                        {{ player.roleInfo.name?.charAt(0) || "?" }}
+                      </div>
+                    </div>
+                    <span class="header-player">{{ player.roleInfo.name }}</span>
+                    <span class="player-stat">{{ player.killCnt || 0 }}</span>
+                    <span class="player-stat">{{ player.mCKCnt || 0 }}</span>
+                    <span class="player-stat">{{ player.carCnt || 0 }}</span>
+                    <span class="player-stat">{{ player.reviveCnt || 0 }}</span>
+                    <span class="player-stat">{{ player.kd || 0 }}</span>
+                  </div>
                 </div>
+              </div>
+              <div class="mobile-god-list">
+                <article
+                  v-for="(player, index) in battleRecords.opponentClub.godRank"
+                  :key="`opp-god-${index}`"
+                  class="god-m-card"
+                  :class="{ 'is-open': expandedMembers.has(`opp-${index}`) }"
+                >
+                  <button
+                    type="button"
+                    class="god-m-card__summary"
+                    @click="toggleMemberDetails(`opp-${index}`)"
+                  >
+                    <div class="god-m-card__rank">{{ index + 1 }}</div>
+                    <div class="god-m-card__avatar">
+                      <img
+                        v-if="player.roleInfo.headImg"
+                        :src="player.roleInfo.headImg"
+                        :alt="player.roleInfo.name"
+                        class="player-avatar"
+                        @error="handleImageError"
+                      />
+                      <div v-else class="player-avatar-placeholder">
+                        {{ player.roleInfo.name?.charAt(0) || "?" }}
+                      </div>
+                    </div>
+                    <div class="god-m-card__main">
+                      <div class="god-m-card__name">
+                        {{ player.roleInfo.name }}
+                      </div>
+                      <div class="god-m-card__highlight">
+                        击杀 {{ player.killCnt || 0 }}
+                      </div>
+                    </div>
+                    <n-icon size="16" class="god-m-card__chevron">
+                      <ChevronUp v-if="expandedMembers.has(`opp-${index}`)" />
+                      <ChevronDown v-else />
+                    </n-icon>
+                  </button>
+                  <div
+                    v-show="expandedMembers.has(`opp-${index}`)"
+                    class="god-m-card__stats"
+                  >
+                    <div class="god-m-stat">
+                      <span>连杀</span><strong>{{ player.mCKCnt || 0 }}</strong>
+                    </div>
+                    <div class="god-m-stat">
+                      <span>抢船</span><strong>{{ player.carCnt || 0 }}</strong>
+                    </div>
+                    <div class="god-m-stat">
+                      <span>复活</span
+                      ><strong>{{ player.reviveCnt || 0 }}</strong>
+                    </div>
+                    <div class="god-m-stat">
+                      <span>K/D</span><strong>{{ player.kd || 0 }}</strong>
+                    </div>
+                  </div>
+                </article>
               </div>
             </div>
           </div>
@@ -910,12 +1055,14 @@ const getBattleClass = (battle) => {
 
 // 切换成员详情展开状态
 const toggleMemberDetails = (roleId) => {
-  if (expandedMembers.value.has(roleId)) {
-    expandedMembers.value.delete(roleId)
+  const next = new Set(expandedMembers.value);
+  if (next.has(roleId)) {
+    next.delete(roleId);
   } else {
-    expandedMembers.value.add(roleId)
+    next.add(roleId);
   }
-}
+  expandedMembers.value = next;
+};
 
 // 处理图片加载错误
 const handleImageError = (event) => {
@@ -1216,7 +1363,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-lg);
-  background: var(--bg-primary);
+  background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
   border-bottom: 1px solid var(--border-light);
   flex-shrink: 0;
 
@@ -1638,6 +1785,12 @@ onMounted(() => {
   gap: var(--spacing-md);
 }
 
+.style-default {
+  .mobile-god-list {
+    display: none;
+  }
+}
+
 .god-ranking {
   background: var(--bg-secondary);
   border-radius: var(--border-radius-medium);
@@ -1822,6 +1975,182 @@ onMounted(() => {
   
   .club-side.opponent {
     align-items: center;
+  }
+}
+
+@media (max-width: 1024px) {
+  .records-container {
+    height: auto;
+    overflow: visible;
+  }
+
+  .battle-records-content {
+    overflow: visible;
+  }
+
+  .header-section {
+    padding: var(--spacing-sm) var(--spacing-md);
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+
+    .header-title p {
+      display: none;
+    }
+
+    .stats-section .stat-item .stat-label {
+      display: none;
+    }
+  }
+
+  .function-section {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+
+    .function-left {
+      width: 100%;
+    }
+
+    .function-right {
+      width: 100%;
+      flex-wrap: wrap;
+
+      .action-btn {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+  }
+
+  .style-default .battle-header h2 {
+    font-size: var(--font-size-sm);
+    line-height: 1.4;
+    padding: 0 var(--spacing-sm);
+  }
+
+  .style-default .club-info {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .style-default .club-side {
+    width: 100%;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-medium);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+  }
+
+  .style-default .overall-stats {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+
+  .style-default .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .style-default .battle-rankings {
+    gap: var(--spacing-sm);
+  }
+
+  .style-default .ranking-content {
+    grid-template-columns: 1fr;
+  }
+
+  .style-default .god-rankings {
+    grid-template-columns: 1fr;
+  }
+
+  .style-default .god-ranking-desktop {
+    display: none;
+  }
+
+  .style-default .mobile-god-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .god-m-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  }
+
+  .god-m-card__summary {
+    display: grid;
+    grid-template-columns: 28px 36px 1fr 20px;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .god-m-card__rank {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #696969;
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .god-m-card__main {
+    min-width: 0;
+  }
+
+  .god-m-card__name {
+    font-size: 14px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .god-m-card__highlight {
+    font-size: 12px;
+    color: #ff4d4f;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .god-m-card__chevron {
+    color: var(--text-tertiary);
+  }
+
+  .god-m-card__stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border-light);
+    border-top: 1px solid var(--border-light);
+  }
+
+  .god-m-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 4px;
+    background: var(--bg-secondary);
+    gap: 2px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+
+    strong {
+      font-size: 13px;
+      color: var(--text-primary);
+    }
   }
 }
 

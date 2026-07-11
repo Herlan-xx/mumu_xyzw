@@ -1,83 +1,275 @@
 <template>
-  <div class="peach-info-card" ref="exportDom">
-    <div class="toolbar">
-      <div class="left">
-        <span class="title">查询日期:</span>
-        <a-date-picker v-model:value="queryDate" @change="fetchBattleRecordsByDate" valueFormat="YYYY/MM/DD"
-          :disabled-date="disabledDate" :defaultValue="queryDate" format="YYYY/MM/DD" />
-      </div>
-      <div class="right">
-        <n-button size="small" :disabled="!opponentMembers.length" @click="handleExportImage"
-          class="action-btn export-btn" style="margin-right: 8px">
-          <template #icon><n-icon>
-              <Copy />
-            </n-icon></template>导出图片
-        </n-button>
-        <n-button size="small" :disabled="loading" @click="fetchBattleRecordsByDate" class="refresh-btn">
-          <template #icon>
-            <n-icon>
-              <Refresh />
-            </n-icon>
-          </template>
-          刷新
-        </n-button>
-      </div>
-    </div>
-
-    <!-- Header Section -->
-    <h2 class="main-title" v-if="battleInfo">{{ queryDate }} 蟠桃大会对战</h2>
-    <div class="header-section" v-if="battleInfo">
-      <div class="club-vs-container">
-        <!-- Own Club (Left) -->
-        <div class="club-info own">
-          <n-avatar round :size="80" :src="battleInfo.ownClub?.logo || '/icons/xiaoyugan.png'" class="club-logo" />
-          <div class="club-details">
-            <div class="club-name">{{ battleInfo.ownClub.serverId }}服 {{ battleInfo.ownClub?.name || "未知" }}</div>
-            <div class="club-stats">ID: {{ battleInfo.ownClub.id }}</div>
-            <div class="club-stats">{{ battleInfo.ownClub.memberCount }}人 | {{ battleInfo.ownClub.quenchNum }}红 | {{
-              formatPower(battleInfo.ownClub.power) }}</div>
-            <div class="club-stats announcement">{{ battleInfo.ownClub.announcement }}</div>
+  <div class="peach-container">
+    <div class="peach-card">
+      <!-- 头部信息区 -->
+      <div class="header-section">
+        <div class="header-left">
+          <img
+            src="/icons/1733492491706152.png"
+            alt="蟠桃图标"
+            class="header-icon"
+          />
+          <div class="header-title">
+            <h2>蟠桃园对战信息</h2>
+            <p>查看敌方俱乐部成员详情</p>
           </div>
         </div>
 
-        <!-- VS Badge -->
-        <div class="vs-badge">
-          <span class="vs-text">VS</span>
-        </div>
-
-        <!-- Opponent Club (Right) -->
-        <div class="club-info opponent">
-          <n-avatar round :size="80" :src="battleInfo.opponentClub?.logo || '/icons/xiaoyugan.png'" class="club-logo" />
-          <div class="club-details">
-            <div class="club-name">{{ battleInfo.opponentClub.serverId }}服 {{ battleInfo.opponentClub?.name || "未知" }}
-            </div>
-            <div class="club-stats">ID: {{ battleInfo.opponentClub.id }}</div>
-            <div class="club-stats">
-              {{ battleInfo.opponentClub.memberCount }}人 | {{ battleInfo.opponentClub.quenchNum }}红 | {{
-                formatPower(battleInfo.opponentClub.power) }}
-            </div>
-            <div class="club-stats announcement">{{ battleInfo.opponentClub.announcement }}</div>
+        <div class="stats-section" v-if="battleInfo">
+          <div class="stat-item">
+            <span class="stat-label">查询日期</span>
+            <n-tag type="info">{{ queryDate }}</n-tag>
+          </div>
+          <div class="stat-item" v-if="opponentMembers.length">
+            <span class="stat-label">敌方人数</span>
+            <n-tag type="success">{{ opponentMembers.length }}</n-tag>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="loading-state">
-      <n-spin size="large">
-        <template #description>正在加载敌方数据...</template>
-      </n-spin>
-    </div>
+      <!-- 功能操作区 -->
+      <div class="function-section">
+        <div class="function-left"></div>
+        <div class="function-right">
+          <a-date-picker
+            v-model:value="queryDate"
+            @change="fetchBattleRecordsByDate"
+            valueFormat="YYYY/MM/DD"
+            :disabled-date="disabledDate"
+            :defaultValue="queryDate"
+            format="YYYY/MM/DD"
+          />
+          <n-button
+            size="small"
+            :disabled="loading"
+            @click="fetchBattleRecordsByDate"
+            class="action-btn refresh-btn"
+          >
+            <template #icon>
+              <n-icon><Refresh /></n-icon>
+            </template>
+            刷新
+          </n-button>
+          <n-button
+            type="primary"
+            size="small"
+            :disabled="!opponentMembers.length"
+            @click="handleExportImage"
+            class="action-btn export-btn"
+          >
+            <template #icon>
+              <n-icon><Copy /></n-icon>
+            </template>
+            导出
+          </n-button>
+        </div>
+      </div>
 
-    <!-- Data Table -->
-    <div v-else-if="opponentMembers.length > 0" class="members-table">
-      <div class="table-title">敌方信息</div>
-      <n-data-table :columns="columns" :data="opponentMembers" :bordered="false" size="small" striped flex-height />
-    </div>
+      <div ref="exportDom" class="table-content">
+        <!-- 对战双方信息 -->
+        <div v-if="battleInfo" class="battle-vs-section">
+          <h3 class="battle-vs-title">{{ queryDate }} 蟠桃大会对战</h3>
+          <div class="battle-vs-cards">
+            <div class="vs-club-card own">
+              <n-avatar
+                round
+                :size="56"
+                :src="battleInfo.ownClub?.logo || '/icons/xiaoyugan.png'"
+                class="vs-club-avatar"
+              />
+              <div class="vs-club-info">
+                <div class="vs-club-name">
+                  {{ battleInfo.ownClub.serverId }}服
+                  {{ battleInfo.ownClub?.name || "未知" }}
+                </div>
+                <div class="vs-club-meta">
+                  {{ battleInfo.ownClub.memberCount }}人 ·
+                  {{ battleInfo.ownClub.quenchNum }}红 ·
+                  {{ formatPower(battleInfo.ownClub.power) }}
+                </div>
+                <p
+                  v-if="battleInfo.ownClub.announcement"
+                  class="vs-club-notice"
+                >
+                  {{ battleInfo.ownClub.announcement }}
+                </p>
+              </div>
+            </div>
 
-    <!-- Empty State -->
-    <div v-else class="empty-state">
-      <n-empty description="暂无敌方数据" />
+            <div class="vs-divider">
+              <span>VS</span>
+            </div>
+
+            <div class="vs-club-card opponent">
+              <n-avatar
+                round
+                :size="56"
+                :src="battleInfo.opponentClub?.logo || '/icons/xiaoyugan.png'"
+                class="vs-club-avatar"
+              />
+              <div class="vs-club-info">
+                <div class="vs-club-name">
+                  {{ battleInfo.opponentClub.serverId }}服
+                  {{ battleInfo.opponentClub?.name || "未知" }}
+                </div>
+                <div class="vs-club-meta">
+                  {{ battleInfo.opponentClub.memberCount }}人 ·
+                  {{ battleInfo.opponentClub.quenchNum }}红 ·
+                  {{ formatPower(battleInfo.opponentClub.power) }}
+                </div>
+                <p
+                  v-if="battleInfo.opponentClub.announcement"
+                  class="vs-club-notice"
+                >
+                  {{ battleInfo.opponentClub.announcement }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 加载状态 -->
+        <div v-if="loading" class="loading-state">
+          <n-spin size="large">
+            <template #description>正在加载敌方数据...</template>
+          </n-spin>
+        </div>
+
+        <!-- 敌方成员列表 -->
+        <div v-else-if="opponentMembers.length > 0" class="members-container">
+          <div class="members-section-header">
+            <span class="members-section-title">敌方成员</span>
+            <span class="members-section-count"
+              >{{ opponentMembers.length }}人</span
+            >
+          </div>
+
+          <div class="table-desktop">
+            <n-data-table
+              :columns="columns"
+              :data="opponentMembers"
+              :bordered="false"
+              size="small"
+              striped
+              flex-height
+            />
+          </div>
+
+          <div class="mobile-card-list">
+            <article
+              v-for="(member, index) in opponentMembers"
+              :key="`mobile-${member.id}`"
+              class="m-card"
+              :class="{ 'is-open': isMemberExpanded(member.id) }"
+            >
+              <button
+                type="button"
+                class="m-card__summary"
+                @click="toggleMemberExpand(member.id)"
+              >
+                <div class="m-card__rank">
+                  <span class="m-rank-num">{{ index + 1 }}</span>
+                </div>
+
+                <div class="m-card__avatar">
+                  <img
+                    v-if="member.headImg"
+                    :src="member.headImg"
+                    :alt="member.name"
+                    class="member-avatar"
+                    @error="handleImageError"
+                  />
+                  <div v-else class="member-avatar-placeholder">
+                    {{ member.name?.charAt(0) || "?" }}
+                  </div>
+                </div>
+
+                <div class="m-card__main">
+                  <button
+                    type="button"
+                    class="m-card__title m-card__title--link"
+                    @click.stop="fetchTargetInfo(member.id)"
+                  >
+                    {{ member.name }}
+                  </button>
+                  <div class="m-card__chips">
+                    <n-tag
+                      size="small"
+                      :bordered="false"
+                      :color="getLineupColorProps(member.lineupType)"
+                    >
+                      {{ member.lineupType || "未知" }}
+                    </n-tag>
+                  </div>
+                </div>
+
+                <n-icon size="18" class="m-card__chevron">
+                  <ChevronUp v-if="isMemberExpanded(member.id)" />
+                  <ChevronDown v-else />
+                </n-icon>
+              </button>
+
+              <div class="m-card__stats">
+                <div class="m-stat">
+                  <span class="m-stat__label">战力</span>
+                  <span class="m-stat__value">{{
+                    formatPower(member.power)
+                  }}</span>
+                </div>
+                <div class="m-stat">
+                  <span class="m-stat__label">红淬</span>
+                  <span class="m-stat__value m-stat__value--red">{{
+                    member.redQuench || 0
+                  }}</span>
+                </div>
+                <div class="m-stat">
+                  <span class="m-stat__label">武将</span>
+                  <span class="m-stat__value">{{
+                    member.heroList?.length || 0
+                  }}</span>
+                </div>
+              </div>
+
+              <div
+                v-show="isMemberExpanded(member.id)"
+                class="m-card__detail"
+              >
+                <div class="m-card__detail-title">阵容详情</div>
+                <div class="m-hero-grid">
+                  <div
+                    v-for="(hero, heroIndex) in member.heroList"
+                    :key="heroIndex"
+                    class="m-hero-item"
+                  >
+                    <div class="m-hero-item__name">{{ hero.heroName }}</div>
+                    <div class="m-hero-item__meta">
+                      <span class="m-hero-item__red">{{ hero.red }}红</span>
+                      <span v-if="hero.HolyBeast" class="m-hero-item__hb"
+                        >四圣{{ hero.HBlevel }}</span
+                      >
+                      <span>{{ formatPower(hero.power) }}</span>
+                    </div>
+                  </div>
+                </div>
+                <n-button
+                  size="small"
+                  type="primary"
+                  ghost
+                  class="m-card__action"
+                  @click="fetchTargetInfo(member.id)"
+                >
+                  查看详情 / 切磋
+                </n-button>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <!-- 空状态 -->
+        <div v-else-if="!loading" class="empty-state">
+          <n-empty description="暂无敌方数据" size="large" />
+        </div>
+      </div>
     </div>
 
     <!-- 玩家信息模态框 -->
@@ -414,7 +606,7 @@ import {
   NDescriptionsItem,
   NInputNumber,
 } from "naive-ui";
-import { Refresh, Copy } from "@vicons/ionicons5";
+import { Refresh, Copy, ChevronUp, ChevronDown } from "@vicons/ionicons5";
 import { useTokenStore } from "@/stores/tokenStore";
 import html2canvas from "html2canvas";
 import { downloadCanvasAsImage } from "@/utils/imageExport";
@@ -515,7 +707,32 @@ const isToday = (dateStr) => {
 const loading = ref(false);
 const battleInfo = ref(null); // Opponent Club Info
 const opponentMembers = ref([]);
+const expandedMembers = ref(new Set());
 const queryDate = ref(getLastSunday());
+
+const toggleMemberExpand = (memberId) => {
+  const next = new Set(expandedMembers.value);
+  if (next.has(memberId)) {
+    next.delete(memberId);
+  } else {
+    next.add(memberId);
+  }
+  expandedMembers.value = next;
+};
+
+const isMemberExpanded = (memberId) => expandedMembers.value.has(memberId);
+
+const getLineupColorProps = (type) => {
+  const rule = LINEUP_RULES.find((r) => r.name === type);
+  return rule?.colorProps || { color: "#f5f5f5", textColor: "#666" };
+};
+
+const handleImageError = (e) => {
+  if (e?.target) {
+    e.target.style.display = "none";
+  }
+};
+
 
 // 新增查询对手相关状态
 const queryLoading = ref(false);
@@ -1374,7 +1591,9 @@ const handleExportImage = async () => {
   }
 
   // 获取 table-container
-  const tableContainer = exportDom.value.querySelector('.n-data-table');
+  const tableContainer =
+    exportDom.value.querySelector(".table-desktop .n-data-table") ||
+    exportDom.value.querySelector(".mobile-card-list");
   // 保存滚动位置
   const scrollTop = tableContainer ? tableContainer.scrollTop : 0;
 
@@ -1457,128 +1676,199 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.peach-info-card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 16px;
-  min-height: 400px;
+.peach-container {
+  padding: var(--spacing-sm);
   height: 100%;
-  display: flex;
-  flex-direction: column;
   box-sizing: border-box;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.toolbar {
+.peach-card {
+  background: var(--bg-primary);
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-light);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding: 0 8px;
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+  border-bottom: 1px solid var(--border-light);
   flex-shrink: 0;
 
-  .left {
+  .header-left {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--spacing-md);
+  }
 
-    .title {
-      font-size: 14px;
-      color: #666;
+  .header-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    border-radius: var(--border-radius-md);
+    background: var(--bg-secondary);
+    padding: var(--spacing-xs);
+    box-sizing: border-box;
+  }
+
+  .header-title {
+    h2 {
+      margin: 0;
+      font-size: var(--font-size-xl);
+      font-weight: var(--font-weight-bold);
+      color: var(--text-primary);
+    }
+
+    p {
+      margin: var(--spacing-xs) 0 0 0;
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+    }
+  }
+
+  .stats-section {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+    flex-wrap: wrap;
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+
+      .stat-label {
+        font-size: var(--font-size-sm);
+        color: var(--text-secondary);
+      }
     }
   }
 }
 
-.main-title {
-  text-align: center;
-  margin: 0 0 16px 0;
-  font-size: 20px;
-  font-weight: bold;
-  color: #333;
-}
-
-.header-section {
-  text-align: center;
-  margin-bottom: 20px;
-  background: linear-gradient(to bottom, #fff5f5, #fff);
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px solid #ffccc7;
+.function-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-light);
   flex-shrink: 0;
+
+  .function-right {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
+
+  .action-btn {
+    white-space: nowrap;
+  }
 }
 
-.club-vs-container {
+.table-content {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+
+  .mobile-card-list {
+    display: none;
+  }
+}
+
+.battle-vs-section {
+  flex-shrink: 0;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: linear-gradient(135deg, #fff0f6 0%, #fff5f5 50%, #fff 100%);
+  border-bottom: 1px solid #ffccc7;
+}
+
+.battle-vs-title {
+  margin: 0 0 var(--spacing-md);
+  text-align: center;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.battle-vs-cards {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 20px;
-  margin-bottom: 10px;
-  width: 100%;
+  gap: var(--spacing-md);
 }
 
-.club-info {
+.vs-club-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-}
-
-.club-info.own {
-  justify-self: end;
-}
-
-.club-info.opponent {
-  justify-self: start;
-}
-
-.club-logo {
-  border: 4px solid #fff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  cursor: default;
-
-  &:hover {
-    transform: scale(1.1);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    border-color: #1890ff;
-  }
-}
-
-.club-details {
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--bg-primary);
+  border-radius: var(--border-radius-medium);
+  border: 1px solid var(--border-light);
   text-align: center;
-}
 
-.club-name {
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
-}
+  &.own {
+    border-color: #91caff;
+    background: linear-gradient(180deg, #e6f4ff 0%, #fff 100%);
+  }
 
-.club-stats {
-  font-size: 14px;
-  color: #ff4d4f;
-
-  &.announcement {
-    white-space: pre-wrap;
-    word-break: break-all;
-    max-width: 300px;
-    line-height: 1.5;
+  &.opponent {
+    border-color: #ffccc7;
+    background: linear-gradient(180deg, #fff1f0 0%, #fff 100%);
   }
 }
 
-.vs-badge {
-  font-size: 32px;
-  font-weight: 900;
-  color: #ff7875;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-  font-style: italic;
+.vs-club-name {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  line-height: 1.3;
 }
 
-.battle-title {
-  font-size: 16px;
-  color: #666;
-  margin-top: 10px;
-  font-weight: bold;
+.vs-club-meta {
+  font-size: var(--font-size-sm);
+  color: #ff4d4f;
+}
+
+.vs-club-notice {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  line-height: 1.4;
+  word-break: break-all;
+  max-height: 3.6em;
+  overflow: hidden;
+}
+
+.vs-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  span {
+    font-size: 24px;
+    font-weight: 900;
+    font-style: italic;
+    color: #ff7875;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.08);
+  }
 }
 
 .loading-state,
@@ -1586,25 +1876,46 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 300px;
+  flex: 1;
+  min-height: 200px;
 }
 
-.members-table {
-  margin-top: 20px;
+.members-container {
   flex: 1;
-  overflow: hidden;
-  /* Use NDataTable's scroll or auto here */
+  min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
-.table-title {
-  font-size: 16px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
-  padding-left: 8px;
-  border-left: 4px solid #1890ff;
+.members-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: linear-gradient(135deg, #eb2f96 0%, #722ed1 100%);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.members-section-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+
+.members-section-count {
+  font-size: var(--font-size-sm);
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+.table-desktop {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--spacing-sm);
 }
 
 :deep(.n-data-table) {
@@ -1622,22 +1933,15 @@ onMounted(() => {
   border-radius: 50% !important;
   object-fit: cover;
   border: 2px solid #eee;
-  transition: all 0.2s;
   display: block;
   margin: 0 auto;
-
-  &:hover {
-    transform: scale(1.2);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border-color: #1890ff;
-  }
 }
 
 :deep(.member-avatar-placeholder-cell) {
   width: 32px;
   height: 32px;
   border-radius: 50% !important;
-  background: linear-gradient(135deg, #1890ff 0%, #69c0ff 100%);
+  background: linear-gradient(135deg, #eb2f96 0%, #722ed1 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -1646,6 +1950,263 @@ onMounted(() => {
   font-weight: bold;
   border: 2px solid #eee;
   margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+  .peach-container {
+    padding: var(--spacing-xs);
+    height: auto;
+    overflow: visible;
+  }
+
+  .peach-card {
+    height: auto;
+    overflow: visible;
+  }
+
+  .table-content {
+    flex: none;
+    overflow: visible;
+  }
+
+  .header-section {
+    padding: var(--spacing-sm) var(--spacing-md);
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+
+    .header-title p {
+      display: none;
+    }
+
+    .stats-section .stat-item .stat-label {
+      display: none;
+    }
+  }
+
+  .function-section {
+    padding: var(--spacing-xs) var(--spacing-sm);
+
+    .function-right {
+      width: 100%;
+
+      .action-btn {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+  }
+
+  .battle-vs-cards {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+
+  .vs-divider span {
+    font-size: 20px;
+  }
+
+  .members-container {
+    flex: none;
+    overflow: visible;
+  }
+
+  .table-content .table-desktop {
+    display: none;
+  }
+
+  .table-content .mobile-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 8px var(--spacing-sm) 12px;
+  }
+
+  .m-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  .m-card__summary {
+    display: grid;
+    grid-template-columns: 32px 44px 1fr 24px;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .m-card__rank {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .m-rank-num {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--text-secondary);
+  }
+
+  .m-card__avatar {
+    .member-avatar,
+    .member-avatar-placeholder {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .member-avatar-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #eb2f96, #722ed1);
+      color: #fff;
+      font-weight: bold;
+      font-size: 16px;
+    }
+  }
+
+  .m-card__main {
+    min-width: 0;
+  }
+
+  .m-card__title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .m-card__title--link {
+    border: none;
+    background: none;
+    padding: 0;
+    text-align: left;
+    color: #1890ff;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  .m-card__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .m-card__chevron {
+    color: var(--text-tertiary);
+  }
+
+  .m-card__stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border-light);
+    border-top: 1px solid var(--border-light);
+  }
+
+  .m-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 4px;
+    background: var(--bg-secondary);
+    gap: 2px;
+  }
+
+  .m-stat__label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .m-stat__value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+
+    &--red {
+      color: #ff4d4f;
+    }
+  }
+
+  .m-card__detail {
+    padding: 12px;
+    border-top: 1px solid var(--border-light);
+    background: var(--bg-secondary);
+    animation: m-card-expand 0.2s ease;
+  }
+
+  .m-card__detail-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .m-hero-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .m-hero-item {
+    padding: 8px 10px;
+    background: var(--bg-primary);
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+  }
+
+  .m-hero-item__name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #40a9ff;
+    margin-bottom: 4px;
+  }
+
+  .m-hero-item__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .m-hero-item__red {
+    color: #ff4d4f;
+    font-weight: 600;
+  }
+
+  .m-hero-item__hb {
+    color: #52c41a;
+    font-weight: 600;
+  }
+
+  .m-card__action {
+    width: 100%;
+  }
+
+  @keyframes m-card-expand {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 // 模态框样式

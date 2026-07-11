@@ -269,18 +269,184 @@
           </n-tab-pane>
 
           <n-tab-pane name="members" tab="成员" display-directive="show:lazy">
-            <div class="members" ref="exportDom">
-              <n-data-table
-                :columns="memberColumns"
-                :data="topMembers"
-                :bordered="false"
-                size="small"
-                striped
-                :row-key="(row) => row.roleId"
-                flex-height
-                :scroll-x="650"
-                style="height: 600px"
-              />
+            <div class="members-panel">
+              <div v-if="!isExporting" class="members-toolbar">
+                <div class="members-toolbar-left">
+                  <span class="members-toolbar-title">俱乐部成员详情</span>
+                  <span class="members-toolbar-count">{{ topMembers.length }}人</span>
+                </div>
+                <div class="members-toolbar-actions">
+                  <n-button
+                    size="small"
+                    type="primary"
+                    secondary
+                    @click="fetchAllMembersLineup"
+                    :disabled="batchLoading"
+                  >
+                    <template #icon>
+                      <n-icon><Refresh /></n-icon>
+                    </template>
+                    获取阵容
+                  </n-button>
+                  <n-button
+                    size="small"
+                    type="info"
+                    secondary
+                    @click="handleExportImage"
+                    :disabled="isExporting"
+                  >
+                    <template #icon>
+                      <n-icon><Copy /></n-icon>
+                    </template>
+                    导出图片
+                  </n-button>
+                </div>
+              </div>
+
+              <div
+                class="members"
+                ref="exportDom"
+                :class="{ 'is-exporting': isExporting }"
+              >
+                <h3
+                  class="members-list-title"
+                  :class="{ 'is-visible': isExporting }"
+                >
+                  俱乐部成员详情
+                </h3>
+
+                <div class="table-desktop">
+                  <n-data-table
+                    :columns="memberColumns"
+                    :data="topMembers"
+                    :bordered="false"
+                    size="small"
+                    striped
+                    :row-key="(row) => row.roleId"
+                    flex-height
+                    :scroll-x="650"
+                    class="members-data-table"
+                  />
+                </div>
+
+                <div class="mobile-card-list">
+                  <article
+                    v-for="(member, index) in topMembers"
+                    :key="`mobile-${member.roleId}`"
+                    class="m-card"
+                    :class="[
+                      getJobCardClass(member.job),
+                      { 'is-open': isMemberExpanded(member.roleId) },
+                    ]"
+                  >
+                    <button
+                      type="button"
+                      class="m-card__summary"
+                      @click="toggleMemberExpand(member.roleId)"
+                    >
+                      <div class="m-card__rank">
+                        <span
+                          v-if="member.job === 1"
+                          class="job-badge job-badge--leader"
+                          >会</span
+                        >
+                        <span
+                          v-else-if="member.job === 2"
+                          class="job-badge job-badge--vice"
+                          >副</span
+                        >
+                        <span v-else class="m-rank-num">{{ index + 1 }}</span>
+                      </div>
+
+                      <div class="m-card__avatar">
+                        <img
+                          v-if="member.headImg"
+                          :src="member.headImg"
+                          :alt="member.name"
+                          class="member-avatar"
+                          @error="handleImageError"
+                        />
+                        <div v-else class="member-avatar-placeholder">
+                          {{ member.name?.charAt(0) || "?" }}
+                        </div>
+                      </div>
+
+                      <div class="m-card__main">
+                        <button
+                          type="button"
+                          class="m-card__title m-card__title--link"
+                          @click.stop="fetchTargetInfo(member.roleId)"
+                        >
+                          {{ member.name }}
+                        </button>
+                        <div class="m-card__chips">
+                          <span class="m-chip">{{ jobLabel(member.job) }}</span>
+                          <n-tag
+                            v-if="member.lineupType"
+                            size="small"
+                            :bordered="false"
+                            :color="getLineupColorProps(member.lineupType)"
+                          >
+                            {{ member.lineupType }}
+                          </n-tag>
+                          <span v-else class="m-chip m-chip--muted">未获取阵容</span>
+                        </div>
+                      </div>
+
+                      <n-icon size="18" class="m-card__chevron">
+                        <ChevronUp v-if="isMemberExpanded(member.roleId)" />
+                        <ChevronDown v-else />
+                      </n-icon>
+                    </button>
+
+                    <div class="m-card__stats">
+                      <div class="m-stat">
+                        <span class="m-stat__label">战力</span>
+                        <span class="m-stat__value">{{
+                          formatNumber(member.power || member.custom?.s_power || 0)
+                        }}</span>
+                      </div>
+                      <div class="m-stat">
+                        <span class="m-stat__label">红淬</span>
+                        <span class="m-stat__value m-stat__value--red">{{
+                          redQuenchlabel(member.custom?.red_quench_cnt || 0)
+                        }}</span>
+                      </div>
+                      <div class="m-stat">
+                        <span class="m-stat__label">ID</span>
+                        <span class="m-stat__value m-stat__value--id">{{
+                          member.roleId
+                        }}</span>
+                      </div>
+                    </div>
+
+                    <div
+                      v-show="isMemberExpanded(member.roleId)"
+                      class="m-card__detail"
+                    >
+                      <div class="m-card__detail-actions">
+                        <n-button
+                          size="small"
+                          type="primary"
+                          ghost
+                          @click="fetchTargetInfo(member.roleId)"
+                        >
+                          查看详情
+                        </n-button>
+                        <n-button
+                          v-if="canKick && member.job !== 1"
+                          size="small"
+                          type="error"
+                          ghost
+                          @click="kickMember(member.roleId, member.name)"
+                        >
+                          踢出
+                        </n-button>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              </div>
             </div>
           </n-tab-pane>
 
@@ -595,7 +761,7 @@
 import { ref, computed, onMounted, onUnmounted, h, reactive, watch, nextTick } from "vue";
 import { useMessage, useDialog, NDataTable, NModal, NAvatar, NTag, NDescriptions, NDescriptionsItem, NButton, NSpace, NIcon, NGrid, NGi, NStatistic, NThing, NAlert, NCollapse, NCollapseItem, NCard } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
-import { Copy, Refresh, People, BarChart, Flame, Skull, Megaphone, Person, ShieldCheckmark } from "@vicons/ionicons5";
+import { Copy, Refresh, People, BarChart, Flame, Skull, Megaphone, Person, ShieldCheckmark, ChevronUp, ChevronDown } from "@vicons/ionicons5";
 import ClubHistoryRecords from "./ClubHistoryRecords.vue";
 import ClubWeirdTowerInfo from "./ClubWeirdTowerInfo.vue";
 import CarScoreInfo from "./CarScoreInfo.vue";
@@ -648,6 +814,37 @@ const heroModealTemp = ref(null);
 const batchLoading = ref(false);
 const isExporting = ref(false);
 const exportDom = ref(null);
+const expandedMembers = ref(new Set());
+
+const toggleMemberExpand = (memberId) => {
+  const next = new Set(expandedMembers.value);
+  if (next.has(memberId)) {
+    next.delete(memberId);
+  } else {
+    next.add(memberId);
+  }
+  expandedMembers.value = next;
+};
+
+const isMemberExpanded = (memberId) => expandedMembers.value.has(memberId);
+
+const getLineupColorProps = (type) => {
+  const rule = LINEUP_RULES.find((r) => r.name === type);
+  return rule?.colorProps || { color: "#f5f5f5", textColor: "#666" };
+};
+
+const getJobCardClass = (job) => {
+  if (job === 1) return "job-leader";
+  if (job === 2) return "job-vice";
+  return "";
+};
+
+const handleImageError = (e) => {
+  if (e?.target) {
+    e.target.style.display = "none";
+  }
+};
+
 
 // 提取英雄信息
 const getHeroInfo = (heroObj) => {
@@ -834,7 +1031,9 @@ const handleExportImage = async () => {
     await nextTick();
 
     // 获取 table-container
-    const tableContainer = exportDom.value.querySelector('.n-data-table');
+    const tableContainer =
+      exportDom.value.querySelector(".table-desktop .n-data-table") ||
+      exportDom.value.querySelector(".mobile-card-list");
     
     // 临时调整表格容器高度，确保所有内容可见
     if (tableContainer) {
@@ -875,7 +1074,9 @@ const handleExportImage = async () => {
     message.error("导出图片失败，请重试");
   } finally {
     // 恢复原始样式
-    const tableContainer = exportDom.value?.querySelector('.n-data-table');
+    const tableContainer =
+      exportDom.value?.querySelector(".table-desktop .n-data-table") ||
+      exportDom.value?.querySelector(".mobile-card-list");
     if (tableContainer) {
       const scrollContainer = tableContainer.querySelector('.n-data-table-base-table-body');
       if (scrollContainer) {
@@ -1186,62 +1387,7 @@ const memberColumns = computed(() => {
     });
   }
 
-  return [
-    {
-      title: () => h(
-        "div",
-        {
-          style: {
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            width: "100%",
-            padding: "0 8px"
-          },
-        },
-        [
-            h("span", { style: { fontSize: "16px", fontWeight: "bold", color: "#333" } }, "俱乐部成员详情"),
-            !isExporting.value ? h(
-                'div',
-                { style: { display: 'flex', gap: '8px' } },
-                [
-                    h(
-                        NButton,
-                        {
-                            size: 'tiny',
-                            type: 'primary',
-                            secondary: true,
-                            onClick: (e) => { e.stopPropagation(); fetchAllMembersLineup(); },
-                            disabled: batchLoading.value
-                        },
-                        {
-                            default: () => '获取阵容',
-                            icon: () => h(NIcon, null, { default: () => h(Refresh) })
-                        }
-                    ),
-                    h(
-                        NButton,
-                        {
-                            size: 'tiny',
-                            type: 'info',
-                            secondary: true,
-                            onClick: (e) => { e.stopPropagation(); handleExportImage(); },
-                            disabled: isExporting.value
-                        },
-                        {
-                            default: () => '导出图片',
-                            icon: () => h(NIcon, null, { default: () => h(Copy) })
-                        }
-                    )
-                ]
-            ) : null
-        ]
-      ),
-      key: "title_group",
-      align: "center",
-      children: cols,
-    },
-  ];
+  return cols;
 });
 
 // 获取当前角色在俱乐部中的职位
@@ -1639,6 +1785,102 @@ const formatNumber = (num) => {
     display: flex;
     flex-direction: column;
     gap: 8px;
+  }
+
+  .members-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+  }
+
+  .members-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) 0 var(--spacing-md);
+    flex-wrap: wrap;
+  }
+
+  .members-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .members-toolbar-title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+  }
+
+  .members-toolbar-count {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+    padding: 2px 10px;
+    border-radius: 12px;
+  }
+
+  .members-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+  }
+
+  .members {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    .mobile-card-list {
+      display: none;
+    }
+  }
+
+  .members-list-title {
+    display: none;
+    margin: 0 0 var(--spacing-md);
+    text-align: center;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+
+    &.is-visible {
+      display: block;
+    }
+  }
+
+  .members.is-exporting {
+    .mobile-card-list {
+      display: none !important;
+    }
+
+    .table-desktop {
+      display: block !important;
+    }
+  }
+
+  .table-desktop {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .members-data-table {
+    height: 600px;
+    min-height: 300px;
+  }
+
+  :deep(.member-avatar-cell) {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
   }
 
   .member-row {
@@ -2131,6 +2373,225 @@ const formatNumber = (num) => {
     margin-right: 4px;
     display: inline-block;
     vertical-align: middle;
+  }
+}
+
+@media (max-width: 1024px) {
+  .club-info {
+    .members-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .members-toolbar-actions {
+      width: 100%;
+
+      .n-button {
+        flex: 1;
+      }
+    }
+
+    .members {
+      flex: none;
+      overflow: visible;
+    }
+
+    .table-desktop {
+      display: none;
+    }
+
+    .members .mobile-card-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-bottom: var(--spacing-sm);
+    }
+
+    .members-data-table {
+      height: auto;
+    }
+
+    .m-card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .m-card.job-leader {
+      border-color: #ffd666;
+      background: linear-gradient(180deg, #fffbe6 0%, #fff 40%);
+    }
+
+    .m-card.job-vice {
+      border-color: #91caff;
+      background: linear-gradient(180deg, #e6f4ff 0%, #fff 40%);
+    }
+
+    .m-card__summary {
+      display: grid;
+      grid-template-columns: 32px 44px 1fr 24px;
+      gap: 10px;
+      align-items: center;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .m-card__rank {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .m-rank-num {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--text-secondary);
+    }
+
+    .job-badge {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .job-badge--leader {
+      background: linear-gradient(135deg, #faad14, #d48806);
+    }
+
+    .job-badge--vice {
+      background: linear-gradient(135deg, #1890ff, #096dd9);
+    }
+
+    .m-card__avatar {
+      .member-avatar,
+      .member-avatar-placeholder {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .member-avatar-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        font-weight: bold;
+        font-size: 16px;
+      }
+    }
+
+    .m-card__main {
+      min-width: 0;
+    }
+
+    .m-card__title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .m-card__title--link {
+      border: none;
+      background: none;
+      padding: 0;
+      text-align: left;
+      color: #1890ff;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .m-card__chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .m-chip {
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+
+      &--muted {
+        font-style: italic;
+      }
+    }
+
+    .m-card__chevron {
+      color: var(--text-tertiary);
+    }
+
+    .m-card__stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border-light);
+      border-top: 1px solid var(--border-light);
+    }
+
+    .m-stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 4px;
+      background: var(--bg-secondary);
+      gap: 2px;
+    }
+
+    .m-stat__label {
+      font-size: 11px;
+      color: var(--text-tertiary);
+    }
+
+    .m-stat__value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+
+      &--red {
+        color: #ff4d4f;
+      }
+
+      &--id {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+    }
+
+    .m-card__detail {
+      padding: 12px;
+      border-top: 1px solid var(--border-light);
+      background: var(--bg-secondary);
+    }
+
+    .m-card__detail-actions {
+      display: flex;
+      gap: 8px;
+
+      .n-button {
+        flex: 1;
+      }
+    }
   }
 }
 

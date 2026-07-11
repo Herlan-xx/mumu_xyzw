@@ -209,127 +209,273 @@
           </n-spin>
         </div>
 
-        <!-- 匹配列表 -->
+        <!-- 匹配列表：桌面表格 -->
         <div
           v-else-if="battleRecords1 && battleRecords1.legionRankList"
           class="table-container"
         >
-          <!-- 表格标题行 -->
-          <div class="table-header">
-            <div class="table-cell rank">排名</div>
-            <div class="table-cell alliance">联盟</div>
-            <div class="table-cell server">服务器</div>
-            <div class="table-cell avatar">头像</div>
-            <div class="table-cell name">名称</div>
-            <div class="table-cell score" v-if="ScoreShow === 1">积分</div>
-            <div class="table-cell red-quench">红淬</div>
-            <div class="table-cell first-3">前三车头</div>
-            <div class="table-cell power">战力</div>
-            <div class="table-cell level">等级</div>
-            <div class="table-cell announcement">公告</div>
-          </div>
-
-          <!-- 表格数据行 -->
-          <div
-            v-for="(member, index) in filteredLegionList"
-            :key="member.id"
-            class="table-row"
-            :class="getAllianceClass(getMemberAlliance(member))"
-          >
-            <div class="table-cell rank">
-              <div v-if="isEditMode" class="edit-rank">
-                <n-input-number
-                  v-model:value="manualRankings[member.id]"
-                  size="small"
-                  :min="1"
-                  :max="20"
-                  style="width: 70px"
-                  :show-button="false"
-                  @focus="handleRankFocus(member)"
-                  @blur="handleRankBlur(member)"
-                  @keydown.enter="$event.target.blur()"
-                />
+          <div class="table-desktop">
+            <!-- 表格标题行 -->
+            <div class="table-header">
+              <div class="table-cell rank">排名</div>
+              <div class="table-cell avatar">头像</div>
+              <div class="table-cell name">名称</div>
+              <div class="table-cell alliance">联盟</div>
+              <div class="table-row-meta">
+                <div class="table-cell server">服务器</div>
+                <div class="table-cell score" v-if="ScoreShow === 1">积分</div>
+                <div class="table-cell red-quench">红淬</div>
+                <div class="table-cell power">战力</div>
+                <div class="table-cell level">等级</div>
               </div>
-              <div v-else class="rank-container">
-                <span
-                  v-if="getMemberRank(member) === 1"
-                  class="rank-medal gold"
-                ></span>
-                <span
-                  v-else-if="getMemberRank(member) === 2"
-                  class="rank-medal silver"
-                ></span>
-                <span
-                  v-else-if="getMemberRank(member) === 3"
-                  class="rank-medal bronze"
-                ></span>
-                <span v-else class="rank-number">{{
-                  getMemberRank(member)
+              <div class="table-cell first-3">前三车头</div>
+              <div class="table-cell announcement">公告</div>
+            </div>
+
+            <!-- 表格数据行 -->
+            <div
+              v-for="member in filteredLegionList"
+              :key="`desktop-${member.id}`"
+              class="table-row"
+              :class="getAllianceClass(getMemberAlliance(member))"
+            >
+              <div class="table-cell rank">
+                <div v-if="isEditMode" class="edit-rank">
+                  <n-input-number
+                    v-model:value="manualRankings[member.id]"
+                    size="small"
+                    :min="1"
+                    :max="20"
+                    style="width: 70px"
+                    :show-button="false"
+                    @focus="handleRankFocus(member)"
+                    @blur="handleRankBlur(member)"
+                    @keydown.enter="$event.target.blur()"
+                  />
+                </div>
+                <div v-else class="rank-container">
+                  <span
+                    v-if="getMemberRank(member) === 1"
+                    class="rank-medal gold"
+                  ></span>
+                  <span
+                    v-else-if="getMemberRank(member) === 2"
+                    class="rank-medal silver"
+                  ></span>
+                  <span
+                    v-else-if="getMemberRank(member) === 3"
+                    class="rank-medal bronze"
+                  ></span>
+                  <span v-else class="rank-number">{{
+                    getMemberRank(member)
+                  }}</span>
+                </div>
+              </div>
+              <div class="table-cell avatar">
+                <img
+                  v-if="member.logo"
+                  :src="member.logo"
+                  :alt="member.name"
+                  class="member-avatar"
+                  @error="handleImageError"
+                />
+                <div v-else class="member-avatar-placeholder">
+                  {{ member.name?.charAt(0) || "?" }}
+                </div>
+              </div>
+              <div class="table-cell name">{{ member.name }}</div>
+              <div class="table-cell alliance">
+                <div v-if="isEditMode" class="edit-alliance">
+                  <n-select
+                    v-model:value="manualAlliances[member.id]"
+                    :options="allianceOptions"
+                    size="small"
+                    style="width: 110px"
+                  />
+                </div>
+                <span v-else class="alliance-tag">{{
+                  getMemberAlliance(member)
                 }}</span>
               </div>
-            </div>
-            <div class="table-cell alliance">
-              <div v-if="isEditMode" class="edit-alliance">
-                <n-select
-                  v-model:value="manualAlliances[member.id]"
-                  :options="allianceOptions"
-                  size="small"
-                  style="width: 110px"
-                />
+              <div class="table-row-meta">
+                <div class="table-cell server">{{ member.serverId || 0 }}</div>
+                <div class="table-cell score" v-if="member.sRScore !== -1">
+                  {{ formatScore(member.sRScore) || 0 }}
+                </div>
+                <div class="table-cell red-quench">
+                  {{ member.redQuench || 0 }}
+                </div>
+                <div class="table-cell power">
+                  {{ formatPower(member.power) || 0 }}
+                </div>
+                <div class="table-cell level">
+                  <span>{{ member.level || 30 }}</span>
+                </div>
               </div>
-              <span v-else class="alliance-tag">{{
-                getMemberAlliance(member)
-              }}</span>
-            </div>
-            <div class="table-cell server">{{ member.serverId || 0 }}</div>
-            <div class="table-cell avatar">
-              <img
-                v-if="member.logo"
-                :src="member.logo"
-                :alt="member.name"
-                class="member-avatar"
-                @error="handleImageError"
-              />
-              <div v-else class="member-avatar-placeholder">
-                {{ member.name?.charAt(0) || "?" }}
-              </div>
-            </div>
-            <div class="table-cell name">{{ member.name }}</div>
-            <div class="table-cell score" v-if="member.sRScore !== -1">
-              {{ formatScore(member.sRScore) || 0 }}
-            </div>
-            <div class="table-cell red-quench">{{ member.redQuench || 0 }}</div>
-            <div class="table-cell first-3">
-              <div class="hero-avatars">
-                <div
-                  v-for="(hero, index) in member.topHeroes"
-                  :key="index"
-                  class="hero-card"
-                >
+              <div class="table-cell first-3">
+                <div class="hero-avatars">
                   <div
-                    class="hero-avatar-container"
-                    @click="handleHeroClick(hero)"
+                    v-for="(hero, heroIndex) in member.topHeroes"
+                    :key="heroIndex"
+                    class="hero-card"
                   >
-                    <img
-                      v-if="hero.headImg"
-                      :src="hero.headImg"
-                      :alt="hero.name"
-                      class="hero-avatar"
-                    />
-                    <div v-else class="hero-avatar-placeholder">
-                      {{ hero.name?.charAt(0) || "?" }}
+                    <div
+                      class="hero-avatar-container"
+                      @click="handleHeroClick(hero)"
+                    >
+                      <img
+                        v-if="hero.headImg"
+                        :src="hero.headImg"
+                        :alt="hero.name"
+                        class="hero-avatar"
+                      />
+                      <div v-else class="hero-avatar-placeholder">
+                        {{ hero.name?.charAt(0) || "?" }}
+                      </div>
+                      <div class="hero-holy-beast" title="四圣数">
+                        <span class="holy-beast-icon">🐉</span>
+                        <span class="holy-beast-count">{{
+                          hero.holyBeast
+                        }}</span>
+                      </div>
                     </div>
-                    <div class="hero-holy-beast" title="四圣数">
-                      <span class="holy-beast-icon">🐉</span>
-                      <span class="holy-beast-count">{{ hero.holyBeast }}</span>
+                    <div class="hero-info">
+                      <div class="hero-name">{{ hero.name || "未知" }}</div>
+                      <div class="hero-stats">
+                        <span class="hero-power">{{
+                          formatPower(hero.power)
+                        }}</span>
+                        <span
+                          class="hero-redquench"
+                          :class="getRedQuenchClass(hero.redQuench)"
+                          >{{ hero.redQuench }}红</span
+                        >
+                      </div>
                     </div>
                   </div>
-                  <div class="hero-info">
-                    <div class="hero-name">{{ hero.name || "未知" }}</div>
-                    <div class="hero-stats">
-                      <span class="hero-power">{{
-                        formatPower(hero.power)
-                      }}</span>
+                </div>
+              </div>
+              <div class="table-cell announcement">
+                {{ member.announcement || "" }}
+              </div>
+            </div>
+          </div>
+
+          <!-- 移动端卡片列表 -->
+          <div class="mobile-card-list">
+            <article
+              v-for="member in filteredLegionList"
+              :key="`mobile-${member.id}`"
+              class="m-card"
+              :class="[
+                getAllianceClass(getMemberAlliance(member)),
+                { 'is-open': isMemberExpanded(member.id) },
+              ]"
+            >
+              <button
+                type="button"
+                class="m-card__summary"
+                @click="toggleMemberExpand(member.id)"
+              >
+                <div class="m-card__rank">
+                  <span
+                    v-if="getMemberRank(member) === 1"
+                    class="rank-medal gold"
+                  ></span>
+                  <span
+                    v-else-if="getMemberRank(member) === 2"
+                    class="rank-medal silver"
+                  ></span>
+                  <span
+                    v-else-if="getMemberRank(member) === 3"
+                    class="rank-medal bronze"
+                  ></span>
+                  <span v-else class="m-rank-num">{{
+                    getMemberRank(member)
+                  }}</span>
+                </div>
+
+                <div class="m-card__avatar">
+                  <img
+                    v-if="member.logo"
+                    :src="member.logo"
+                    :alt="member.name"
+                    class="member-avatar"
+                    @error="handleImageError"
+                  />
+                  <div v-else class="member-avatar-placeholder">
+                    {{ member.name?.charAt(0) || "?" }}
+                  </div>
+                </div>
+
+                <div class="m-card__main">
+                  <div class="m-card__title">{{ member.name }}</div>
+                  <div class="m-card__chips">
+                    <span class="m-chip m-chip--alliance">{{
+                      getMemberAlliance(member)
+                    }}</span>
+                    <span class="m-chip">S{{ member.serverId || 0 }}</span>
+                  </div>
+                </div>
+
+                <n-icon size="18" class="m-card__chevron">
+                  <ChevronUp v-if="isMemberExpanded(member.id)" />
+                  <ChevronDown v-else />
+                </n-icon>
+              </button>
+
+              <div class="m-card__stats">
+                <div class="m-stat" v-if="member.sRScore !== -1">
+                  <span class="m-stat__label">积分</span>
+                  <span class="m-stat__value m-stat__value--score">{{
+                    formatScore(member.sRScore) || 0
+                  }}</span>
+                </div>
+                <div class="m-stat">
+                  <span class="m-stat__label">红淬</span>
+                  <span class="m-stat__value m-stat__value--red">{{
+                    member.redQuench || 0
+                  }}</span>
+                </div>
+                <div class="m-stat">
+                  <span class="m-stat__label">战力</span>
+                  <span class="m-stat__value">{{
+                    formatPower(member.power) || 0
+                  }}</span>
+                </div>
+                <div class="m-stat">
+                  <span class="m-stat__label">等级</span>
+                  <span class="m-stat__value">Lv.{{ member.level || 30 }}</span>
+                </div>
+              </div>
+
+              <div
+                v-show="isMemberExpanded(member.id)"
+                class="m-card__detail"
+              >
+                <div class="m-card__detail-title">前三车头</div>
+                <div class="m-hero-grid">
+                  <div
+                    v-for="(hero, heroIndex) in member.topHeroes"
+                    :key="heroIndex"
+                    class="m-hero-item"
+                    @click="handleHeroClick(hero)"
+                  >
+                    <div class="m-hero-item__avatar">
+                      <img
+                        v-if="hero.headImg"
+                        :src="hero.headImg"
+                        :alt="hero.name"
+                        class="hero-avatar"
+                      />
+                      <div v-else class="hero-avatar-placeholder">
+                        {{ hero.name?.charAt(0) || "?" }}
+                      </div>
+                      <span class="m-hero-item__beast">🐉{{ hero.holyBeast }}</span>
+                    </div>
+                    <div class="m-hero-item__name">{{ hero.name || "未知" }}</div>
+                    <div class="m-hero-item__meta">
+                      <span>{{ formatPower(hero.power) }}</span>
                       <span
                         class="hero-redquench"
                         :class="getRedQuenchClass(hero.redQuench)"
@@ -338,17 +484,12 @@
                     </div>
                   </div>
                 </div>
+
+                <p v-if="member.announcement" class="m-card__notice">
+                  {{ member.announcement }}
+                </p>
               </div>
-            </div>
-            <div class="table-cell power">
-              {{ formatPower(member.power) || 0 }}
-            </div>
-            <div class="table-cell level">
-              <span>{{ member.level || 30 }}</span>
-            </div>
-            <div class="table-cell announcement">
-              {{ member.announcement || "" }}
-            </div>
+            </article>
           </div>
         </div>
 
@@ -891,6 +1032,19 @@ const showModal = computed({
 const loading1 = ref(false);
 const battleRecords1 = ref(null);
 const expandedMembers = ref(new Set());
+
+const isMemberExpanded = (memberId) => expandedMembers.value.has(memberId);
+
+const toggleMemberExpand = (memberId) => {
+  const next = new Set(expandedMembers.value);
+  if (next.has(memberId)) {
+    next.delete(memberId);
+  } else {
+    next.add(memberId);
+  }
+  expandedMembers.value = next;
+};
+
 const queryDate = ref("");
 const inputDate1 = ref(getLastSaturday());
 
@@ -1719,6 +1873,7 @@ const fetchBattleRecords1 = async () => {
   }
 
   loading1.value = true;
+  expandedMembers.value = new Set();
   queryDate.value = formatTimestamp1(inputDate1.value);
 
   if (gettoday() == queryDate.value && new Date().getHours() < 21) {
@@ -2866,6 +3021,7 @@ onMounted(() => {
 // 主容器样式
 .club-warrank-container {
   width: 100%;
+  min-width: 0;
   height: 100%;
   padding: 0;
   box-sizing: border-box;
@@ -2877,6 +3033,7 @@ onMounted(() => {
 // 卡片样式
 .club-warrank-card {
   width: 100%;
+  min-width: 0;
   height: 100%;
   background: var(--bg-primary);
   border-radius: 0;
@@ -3065,13 +3222,16 @@ onMounted(() => {
 // 联盟分类标签栏
 .alliance-tabs-section {
   display: flex;
+  flex-wrap: wrap;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: var(--spacing-xs);
   gap: var(--spacing-xs);
   flex-shrink: 0;
 
   .alliance-tab {
-    flex: 1;
+    flex: 1 1 calc(33.333% - 6px);
+    min-width: calc(33.333% - 6px);
+    white-space: nowrap;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3134,10 +3294,15 @@ onMounted(() => {
 .table-content {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
+
+  .mobile-card-list {
+    display: none;
+  }
 
   // 加载状态
   .loading-state {
@@ -3179,7 +3344,10 @@ onMounted(() => {
   // 表格容器
   .table-container {
     flex: 1;
-    overflow: auto;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     background: var(--bg-primary);
     height: 100%;
 
@@ -3203,9 +3371,61 @@ onMounted(() => {
       }
     }
 
+    .table-row-meta {
+      display: contents;
+    }
+
+    .table-header,
+    .table-row {
+      .table-cell.rank {
+        order: 1;
+      }
+
+      .table-cell.alliance {
+        order: 2;
+      }
+
+      .table-cell.server {
+        order: 3;
+      }
+
+      .table-cell.avatar {
+        order: 4;
+      }
+
+      .table-cell.name {
+        order: 5;
+      }
+
+      .table-cell.score {
+        order: 6;
+      }
+
+      .table-cell.red-quench {
+        order: 7;
+      }
+
+      .table-cell.first-3 {
+        order: 8;
+      }
+
+      .table-cell.power {
+        order: 9;
+      }
+
+      .table-cell.level {
+        order: 10;
+      }
+
+      .table-cell.announcement {
+        order: 11;
+      }
+    }
+
     // 表格标题行
     .table-header {
       display: flex;
+      min-width: max-content;
       background: linear-gradient(
         180deg,
         var(--bg-secondary) 0%,
@@ -3231,6 +3451,7 @@ onMounted(() => {
     .table-row {
       display: flex;
       align-items: center;
+      min-width: max-content;
       padding: var(--spacing-xs) var(--spacing-sm);
       border-bottom: 1px solid var(--border-light);
       transition: all var(--transition-fast);
@@ -3452,17 +3673,17 @@ onMounted(() => {
         justify-content: center;
         font-weight: var(--font-weight-bold);
         text-align: center;
+      }
 
-        &::before {
-          content: "";
-          display: inline-block;
-          width: 12px;
-          height: 12px;
-          background: var(--error-color);
-          border-radius: 50%;
-          margin-right: 4px;
-          vertical-align: middle;
-        }
+      .table-row &.red-quench::before {
+        content: "";
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        background: var(--error-color);
+        border-radius: 50%;
+        margin-right: 4px;
+        vertical-align: middle;
       }
 
       &.first-3 {
@@ -3674,13 +3895,6 @@ onMounted(() => {
         min-width: 70px;
         justify-content: center;
 
-        &::before {
-          content: "Lv.";
-          font-size: var(--font-size-xs);
-          color: var(--text-secondary);
-          margin-right: 2px;
-        }
-
         span {
           display: inline-block;
           padding: 2px 8px;
@@ -3694,6 +3908,13 @@ onMounted(() => {
           font-weight: var(--font-weight-bold);
           font-size: var(--font-size-sm);
         }
+      }
+
+      .table-row &.level::before {
+        content: "Lv.";
+        font-size: var(--font-size-xs);
+        color: var(--text-secondary);
+        margin-right: 2px;
       }
 
       &.server {
@@ -3765,122 +3986,414 @@ onMounted(() => {
   }
 
   .alliance-tabs-section {
-    overflow-x: auto;
-    justify-content: flex-start;
+    flex-wrap: wrap;
+    overflow-x: visible;
 
     .alliance-tab {
-      flex: 0 0 auto;
+      flex: 1 1 calc(33.333% - 6px);
+      min-width: calc(33.333% - 6px);
       white-space: nowrap;
-    }
-  }
-
-  .table-container {
-    font-size: var(--font-size-xs);
-
-    .table-header {
-      padding: var(--spacing-xs) var(--spacing-sm);
-    }
-
-    .table-row {
-      padding: var(--spacing-xs) var(--spacing-sm);
-    }
-
-    .table-cell {
-      padding: 0 var(--spacing-xs);
-      font-size: var(--font-size-xs);
-
-      &.rank {
-        width: 50px;
-        min-width: 50px;
-      }
-
-      &.alliance {
-        width: 100px;
-        min-width: 100px;
-      }
-
-      &.avatar {
-        width: 50px;
-        min-width: 50px;
-
-        .member-avatar,
-        .member-avatar-placeholder {
-          width: 32px;
-          height: 32px;
-        }
-      }
-
-      &.name {
-        width: 120px;
-        min-width: 120px;
-      }
-
-      &.score,
-      &.red-quench {
-        width: 80px;
-        min-width: 80px;
-      }
-
-      &.first-3 {
-        width: 350px;
-        min-width: 350px;
-
-        .hero-card {
-          min-width: 80px;
-
-          .hero-avatar,
-          .hero-avatar-placeholder {
-            width: 40px;
-            height: 40px;
-          }
-
-          .hero-name {
-            font-size: var(--font-size-xs);
-          }
-
-          .hero-stats {
-            font-size: var(--font-size-xs);
-          }
-        }
-      }
-
-      &.power {
-        width: 100px;
-        min-width: 100px;
-      }
-
-      &.level,
-      &.server {
-        width: 70px;
-        min-width: 70px;
-      }
-
-      &.announcement {
-        min-width: 150px;
-      }
     }
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .club-warrank-container {
     padding: var(--spacing-xs);
+    height: auto;
+    overflow: visible;
+  }
+
+  .club-warrank-card {
+    height: auto;
+    overflow: visible;
+  }
+
+  .table-content {
+    flex: none;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .announcement-section {
+    display: none;
   }
 
   .header-section {
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-sm);
+
+    .header-icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .header-title {
+      h2 {
+        font-size: var(--font-size-md);
+      }
+
+      p {
+        display: none;
+      }
+    }
+
+    .stats-section {
+      width: auto;
+      margin-left: auto;
+      flex-wrap: wrap;
+      gap: 4px;
+
+      .stat-item {
+        gap: 2px;
+
+        .stat-label {
+          display: none;
+        }
+      }
+    }
   }
 
   .function-section {
-    padding: var(--spacing-xs) var(--spacing-md);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    gap: var(--spacing-sm);
+
+    .function-left {
+      display: none;
+    }
+
+    .function-right {
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 6px;
+
+      .action-btn {
+        flex: 1 1 calc(50% - 6px);
+        min-width: calc(50% - 6px);
+        justify-content: center;
+      }
+    }
   }
 
   .alliance-tabs-section {
-    padding: var(--spacing-xs) var(--spacing-xs);
+    flex-wrap: wrap;
+    overflow-x: visible;
+    padding: var(--spacing-xs);
+    border-radius: var(--border-radius-medium);
+    gap: 8px;
+
+    .alliance-tab {
+      flex: 0 1 auto;
+      min-width: 0;
+      padding: 8px 12px;
+      font-size: var(--font-size-xs);
+      border-radius: 999px;
+    }
+  }
+
+  .table-container {
+    flex: none;
+    height: auto;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .table-content {
+    flex: none;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .table-content .table-desktop {
+    display: none;
+  }
+
+  .table-content .mobile-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 8px 0 12px;
+  }
+
+  .m-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  .m-card__summary {
+    display: grid;
+    grid-template-columns: 36px 44px 1fr 24px;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    color: inherit;
+  }
+
+  .m-card__rank {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .rank-medal {
+      width: 32px;
+      height: 32px;
+      margin: 0;
+    }
+  }
+
+  .m-rank-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .m-card__avatar {
+    .member-avatar,
+    .member-avatar-placeholder {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+    }
+
+    .member-avatar-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-secondary);
+      font-weight: 700;
+    }
+  }
+
+  .m-card__main {
+    min-width: 0;
+  }
+
+  .m-card__title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .m-card__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .m-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .m-chip--alliance {
+    color: #fff;
+    background: var(--primary-color);
+  }
+
+  .m-card.alliance-large .m-chip--alliance {
+    background: var(--primary-color);
+  }
+
+  .m-card.alliance-dream .m-chip--alliance {
+    background: var(--success-color);
+  }
+
+  .m-card.alliance-xin-justice .m-chip--alliance {
+    background: var(--info-color);
+  }
+
+  .m-card.alliance-dragon .m-chip--alliance {
+    background: var(--error-color);
+  }
+
+  .m-card.alliance-xi .m-chip--alliance {
+    background: #9c27b0;
+  }
+
+  .m-card.alliance-unknown .m-chip--alliance {
+    background: var(--warning-color);
+  }
+
+  .m-card.alliance-other .m-chip--alliance {
+    background: var(--text-secondary);
+  }
+
+  .m-card__chevron {
+    color: var(--text-tertiary);
+  }
+
+  .m-card__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+    gap: 1px;
+    margin: 0 12px 12px;
+    background: var(--border-light);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .m-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 8px 4px;
+    background: var(--bg-secondary);
+    min-width: 0;
+  }
+
+  .m-stat__label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    line-height: 1.2;
+  }
+
+  .m-stat__value {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+    text-align: center;
+    word-break: break-all;
+  }
+
+  .m-stat__value--score {
+    color: var(--warning-color);
+  }
+
+  .m-stat__value--red {
+    color: var(--error-color);
+  }
+
+  .m-card__detail {
+    padding: 0 12px 12px;
+    border-top: 1px solid var(--border-light);
+    animation: m-card-expand 0.2s ease;
+  }
+
+  .m-card__detail-title {
+    padding: 10px 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .m-hero-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .m-hero-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 4px;
+    border-radius: 10px;
+    background: var(--bg-secondary);
+    cursor: pointer;
+  }
+
+  .m-hero-item__avatar {
+    position: relative;
+
+    .hero-avatar,
+    .hero-avatar-placeholder {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+    }
+  }
+
+  .m-hero-item__beast {
+    position: absolute;
+    right: -4px;
+    bottom: -2px;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: #ee5a24;
+    color: #fff;
+    font-size: 9px;
+    line-height: 1.2;
+  }
+
+  .m-hero-item__name {
+    width: 100%;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .m-hero-item__meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 10px;
+    color: var(--text-secondary);
+  }
+
+  .m-card__notice {
+    margin: 10px 0 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+    word-break: break-all;
+  }
+
+  @keyframes m-card-expand {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   :deep(.n-date-picker) {
-    width: 180px !important;
+    width: 100% !important;
+    max-width: 180px;
   }
 }
 </style>

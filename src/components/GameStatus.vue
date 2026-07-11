@@ -804,13 +804,16 @@ onUnmounted(() => {
 .warrank-full-container {
   grid-column: 1 / -1;
   width: 100%;
+  min-width: 0;
   height: calc(100vh - 200px);
   min-height: 600px;
-  overflow: hidden;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
 
-  @media (max-width: 768px) {
-    height: calc(100vh - 180px);
-    min-height: 500px;
+  @media (max-width: 1024px) {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
   }
 }
 
@@ -819,6 +822,7 @@ onUnmounted(() => {
 .rank-group {
   grid-column: 1 / -1;
   width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
