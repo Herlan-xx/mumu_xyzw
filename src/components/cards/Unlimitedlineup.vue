@@ -44,7 +44,7 @@
             size="small"
             @click="savedLineupsModalVisible = true"
           >
-            已保存阵容 ({{ savedLineups.length }})
+            已保存 ({{ savedLineups.length }})
           </n-button>
         </div>
 
@@ -66,8 +66,8 @@
 
         <div class="current-team-section" v-if="currentTeamInfo">
           <h4>
-            编辑阵容 (阵容槽位{{ currentTeamId }})
-            <span class="drag-tip">拖拽调整站位</span>
+            编辑阵容 · 槽位{{ currentTeamId }}
+            <span class="drag-tip">拖拽调站位</span>
           </h4>
           <div class="heroes-grid">
             <div
@@ -2475,24 +2475,35 @@ onMounted(() => {
 <style scoped lang="scss">
 .lineup-saver {
   min-height: 300px;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .lineup-container {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .toolbar {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--spacing-sm);
   align-items: center;
+
+  .n-button {
+    flex: 0 1 auto;
+  }
 }
 
 .current-team-section {
   background: var(--bg-tertiary);
   border-radius: var(--border-radius-medium);
   padding: var(--spacing-md);
+  min-width: 0;
+  overflow: hidden;
 
   h4 {
     margin: 0 0 var(--spacing-sm) 0;
@@ -2500,6 +2511,7 @@ onMounted(() => {
     color: var(--text-secondary);
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: var(--spacing-sm);
   }
 
@@ -2512,8 +2524,9 @@ onMounted(() => {
 
 .heroes-grid {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--spacing-sm);
+  min-width: 0;
 }
 
 .hero-item {
@@ -2524,6 +2537,9 @@ onMounted(() => {
   border-radius: var(--border-radius-small);
   padding: var(--spacing-xs) var(--spacing-sm);
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   transition: all 0.2s;
   cursor: grab;
   border: 2px solid transparent;
@@ -2550,7 +2566,7 @@ onMounted(() => {
   flex-direction: column;
   gap: var(--spacing-xs);
   margin-left: auto;
-  min-width: 60px;
+  flex-shrink: 0;
   justify-content: center;
 }
 
@@ -2639,6 +2655,8 @@ onMounted(() => {
   gap: 2px;
   cursor: pointer;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .hero-header {
@@ -2686,9 +2704,11 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 3px;
+  min-width: 0;
 
   .stat-row {
     display: flex;
+    flex-wrap: wrap;
     gap: 6px;
     align-items: center;
   }
@@ -2698,7 +2718,7 @@ onMounted(() => {
     border-radius: 4px;
     font-weight: 500;
     white-space: nowrap;
-    min-width: 90px;
+    min-width: 0;
     text-align: center;
   }
 
@@ -3002,6 +3022,7 @@ onMounted(() => {
 
 .team-selector {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--spacing-xs);
 }
 
@@ -3506,5 +3527,80 @@ onMounted(() => {
   font-size: var(--font-size-sm);
   text-align: center;
   padding: var(--spacing-lg);
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    .n-button {
+      flex: 1 1 calc(50% - 8px);
+      min-width: 0;
+    }
+  }
+
+  .hero-item {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "pos left actions"
+      "info info info";
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    transform: none;
+
+    &:hover {
+      transform: none;
+    }
+  }
+
+  .hero-position {
+    grid-area: pos;
+  }
+
+  .hero-left {
+    grid-area: left;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .hero-avatar-info {
+    align-items: flex-start;
+  }
+
+  .hero-name-small-inline {
+    max-width: none;
+  }
+
+  .hero-actions {
+    grid-area: actions;
+    flex-direction: row;
+    margin-left: 0;
+    gap: 6px;
+  }
+
+  .hero-info {
+    grid-area: info;
+  }
+
+  .hero-fish {
+    max-width: 100%;
+  }
+
+  .hero-stats {
+    .stat-row {
+      gap: 4px;
+    }
+
+    span {
+      padding: 2px 5px;
+      font-size: 10px;
+    }
+  }
+
+  .current-team-section {
+    padding: var(--spacing-sm);
+  }
 }
 </style>
