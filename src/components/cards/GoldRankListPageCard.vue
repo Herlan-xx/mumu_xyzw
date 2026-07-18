@@ -120,6 +120,7 @@
           v-else-if="battleRecords1 && battleRecords1.legionRankList"
           class="table-container"
         >
+          <div class="table-desktop">
           <!-- 表格标题行 -->
           <div class="table-header">
             <div class="table-cell rank">排名</div>
@@ -220,6 +221,135 @@
               {{ member.announcement || "" }}
             </div>
           </div>
+          </div>
+
+          <!-- 移动端卡片列表 -->
+          <div class="mobile-card-list">
+            <article
+              v-for="(member, index) in filteredLegionList"
+              :key="`mobile-${member.id}`"
+              class="m-card"
+              :class="[
+                getAllianceClass(allianceincludes(member.announcement)),
+                { 'is-open': isMemberExpanded(member.id) },
+              ]"
+            >
+              <button
+                type="button"
+                class="m-card__summary"
+                @click="toggleMemberExpand(member.id)"
+              >
+                <div class="m-card__rank">
+                  <span v-if="(index + 1) === 1" class="rank-medal gold"></span>
+                  <span
+                    v-else-if="(index + 1) === 2"
+                    class="rank-medal silver"
+                  ></span>
+                  <span
+                    v-else-if="(index + 1) === 3"
+                    class="rank-medal bronze"
+                  ></span>
+                  <span v-else class="m-rank-num">{{ index + 1 }}</span>
+                </div>
+
+                <div class="m-card__avatar">
+                  <img
+                    v-if="member.logo"
+                    :src="member.logo"
+                    :alt="member.name"
+                    class="member-avatar"
+                    @error="handleImageError"
+                  />
+                  <div v-else class="member-avatar-placeholder">
+                    {{ member.name?.charAt(0) || "?" }}
+                  </div>
+                </div>
+
+                <div class="m-card__main">
+                  <div class="m-card__title">{{ member.name }}</div>
+                  <div class="m-card__chips">
+                    <span class="m-chip m-chip--alliance">{{
+                      allianceincludes(member.announcement) || "未知联盟"
+                    }}</span>
+                    <span class="m-chip">S{{ member.serverId || 0 }}</span>
+                  </div>
+                </div>
+
+                <n-icon size="18" class="m-card__chevron">
+                  <ChevronUp v-if="isMemberExpanded(member.id)" />
+                  <ChevronDown v-else />
+                </n-icon>
+              </button>
+
+              <div class="m-card__stats">
+                <div class="m-stat">
+                  <span class="m-stat__label">黄金积分</span>
+                  <span class="m-stat__value m-stat__value--score">{{
+                    formatScore(member.score) || 0
+                  }}</span>
+                </div>
+                <div class="m-stat">
+                  <span class="m-stat__label">红淬</span>
+                  <span class="m-stat__value m-stat__value--red">{{
+                    member.redQuench || 0
+                  }}</span>
+                </div>
+                <div class="m-stat">
+                  <span class="m-stat__label">战力</span>
+                  <span class="m-stat__value">{{
+                    formatPower(member.power) || 0
+                  }}</span>
+                </div>
+                <div class="m-stat">
+                  <span class="m-stat__label">等级</span>
+                  <span class="m-stat__value">Lv.{{ member.level || 30 }}</span>
+                </div>
+              </div>
+
+              <div
+                v-show="isMemberExpanded(member.id)"
+                class="m-card__detail"
+              >
+                <div class="m-card__detail-title">前三车头</div>
+                <div class="m-hero-grid">
+                  <div
+                    v-for="(hero, heroIndex) in member.topHeroes"
+                    :key="heroIndex"
+                    class="m-hero-item"
+                    @click="handleHeroClick(hero)"
+                  >
+                    <div class="m-hero-item__avatar">
+                      <img
+                        v-if="hero.headImg"
+                        :src="hero.headImg"
+                        :alt="hero.name"
+                        class="hero-avatar"
+                      />
+                      <div v-else class="hero-avatar-placeholder">
+                        {{ hero.name?.charAt(0) || "?" }}
+                      </div>
+                    </div>
+                    <div class="m-hero-item__name">
+                      {{ hero.name || "未知" }}
+                    </div>
+                    <div class="m-hero-item__meta">
+                      <span>{{ formatPower(hero.power) }}</span>
+                      <span
+                        class="hero-redquench"
+                        :class="getRedQuenchClass(hero.redQuench)"
+                        >{{ hero.redQuench }}红</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <p v-if="member.announcement" class="m-card__notice">
+                  {{ member.announcement }}
+                </p>
+              </div>
+            </article>
+          </div>
+
         </div>
 
         <!-- 空状态 -->
@@ -238,9 +368,10 @@
     <!-- 玩家信息模态框 -->
     <n-modal
       v-model:show="showPlayerInfoModal"
+      class="player-duel-modal"
       preset="card"
       title="对手信息"
-      :style="{ width: '800px' }"
+      :style="{ width: 'min(800px, calc(100vw - 24px))' }"
       :bordered="false"
       :segmented="{ content: 'soft', footer: 'soft' }"
       :show-close="false"
@@ -705,7 +836,7 @@ import {
 } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import html2canvas from "html2canvas";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { downloadCanvasAsImage, withDesktopExportLayout } from "@/utils/imageExport";
 import {
   Trophy,
   Refresh,
@@ -758,6 +889,19 @@ const loading1 = ref(false);
 const battleRecords1 = ref(null);
 const selectedGroup = ref("gold1");
 const expandedMembers = ref(new Set());
+
+const isMemberExpanded = (memberId) => expandedMembers.value.has(memberId);
+
+const toggleMemberExpand = (memberId) => {
+  const next = new Set(expandedMembers.value);
+  if (next.has(memberId)) {
+    next.delete(memberId);
+  } else {
+    next.add(memberId);
+  }
+  expandedMembers.value = next;
+};
+
 const queryDate = ref("");
 const inputDate1 = ref(getLastSaturday());
 
@@ -1715,7 +1859,7 @@ const exportToImage = async () => {
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     // 5. 用html2canvas渲染DOM为Canvas
-    const canvas = await html2canvas(exportDom.value, {
+    const canvas = await withDesktopExportLayout(exportDom.value, () => html2canvas(exportDom.value, {
       scale: 2, // 放大2倍，解决图片模糊问题
       useCORS: true, // 允许跨域图片（若DOM内有远程图片，需开启）
       backgroundColor: "#ffffff", // 避免透明背景（默认透明）
@@ -1725,7 +1869,7 @@ const exportToImage = async () => {
       windowWidth: exportDom.value.scrollWidth, // 设置窗口宽度
       windowHeight: exportDom.value.scrollHeight, // 设置窗口高度
       allowTaint: true, // 允许跨域图片污染画布
-    });
+    }));
 
     // 6. Canvas转图片链接并下载
     const filename =

@@ -434,6 +434,16 @@
                           查看详情
                         </n-button>
                         <n-button
+                          size="small"
+                          type="warning"
+                          ghost
+                          :disabled="isSelfMember(member.roleId)"
+                          :loading="queryLoading"
+                          @click="openMemberDuel(member.roleId)"
+                        >
+                          切磋
+                        </n-button>
+                        <n-button
                           v-if="canKick && member.job !== 1"
                           size="small"
                           type="error"
@@ -547,6 +557,160 @@
         </div>
       </div>
 
+      <div class="action-section">
+        <div class="action-section__controls">
+          <div class="fight-count-container">
+            <label for="clubFightCount" class="fight-count-label"
+              >切磋次数:</label
+            >
+            <n-input
+              id="clubFightCount"
+              v-model:value="fightCount"
+              type="number"
+              placeholder="1-100"
+              min="1"
+              max="100"
+              :step="1"
+              class="fight-count-input"
+              size="small"
+              @input="validateFightCount"
+            />
+            <div class="fight-count-hint">范围: 1-100</div>
+          </div>
+          <n-button
+            type="tertiary"
+            size="small"
+            @click="showPlayerInfoModal = false"
+          >
+            关闭
+          </n-button>
+        </div>
+        <n-button
+          type="warning"
+          :disabled="!isFightCountValid || isSelfMember(playerInfo.id)"
+          :loading="queryLoading"
+          @click="handleDuel"
+        >
+          {{ isSelfMember(playerInfo.id) ? "不能切磋自己" : "开始切磋" }}
+        </n-button>
+      </div>
+
+      <div v-if="fightProgress.visible" class="fight-progress">
+        <div class="progress-info">
+          <div class="progress-title">切磋进行中</div>
+          <div class="progress-stats">
+            <span>总次数: {{ fightProgress.totalCount }}</span>
+            <span>已完成: {{ fightProgress.completedCount }}</span>
+            <span>剩余: {{ fightProgress.remainingCount }}</span>
+            <span>胜: {{ fightProgress.winCount }}</span>
+            <span>负: {{ fightProgress.lossCount }}</span>
+          </div>
+        </div>
+        <n-progress
+          type="line"
+          :percentage="fightProgress.percentage"
+          :show-indicator="false"
+          :stroke-width="8"
+          status="processing"
+        />
+      </div>
+
+      <div v-if="fightResult.visible" class="fight-result">
+        <div class="result-header">
+          <h4 class="result-title">切磋结果</h4>
+          <div class="result-summary">
+            <div class="summary-item">
+              <span class="summary-label">总次数：</span>
+              <span class="summary-value">{{ fightResult.totalCount }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">胜：</span>
+              <span class="summary-value win">{{ fightResult.winCount }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">负：</span>
+              <span class="summary-value loss">{{ fightResult.lossCount }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">胜率：</span>
+              <span class="summary-value"
+                >{{
+                  (
+                    (fightResult.winCount / fightResult.totalCount) *
+                    100
+                  ).toFixed(2)
+                }}%</span
+              >
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">我方掉将率：</span>
+              <span class="summary-value"
+                >{{
+                  (
+                    (dieStats.ourDieHeroGameCount / fightResult.totalCount) *
+                    100
+                  ).toFixed(2)
+                }}%</span
+              >
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">敌方掉将率：</span>
+              <span class="summary-value"
+                >{{
+                  (
+                    (dieStats.enemyDieHeroGameCount / fightResult.totalCount) *
+                    100
+                  ).toFixed(2)
+                }}%</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="result-list">
+          <div
+            v-for="(battle, index) in fightResult.resultCount"
+            :key="index"
+            :class="['battle-result-item', battle.isWin ? 'win' : 'loss']"
+          >
+            <div class="battle-header">
+              <span class="battle-index">第 {{ index + 1 }} 场</span>
+              <n-tag :type="battle.isWin ? 'success' : 'error'" size="small">
+                {{ battle.isWin ? "胜利" : "失败" }}
+              </n-tag>
+            </div>
+            <div class="battle-details">
+              <div class="battle-side">
+                <n-avatar round :size="32" :src="battle.leftheadImg" />
+                <div class="side-info">
+                  <span class="side-name">{{ battle.leftName || "未知" }}</span>
+                  <span class="side-power">战力: {{ battle.leftpower }}</span>
+                  <span class="side-die"
+                    >掉将: {{ battle.leftDieHero }} 个</span
+                  >
+                </div>
+              </div>
+              <div class="battle-vs">VS</div>
+              <div class="battle-side">
+                <n-avatar round :size="32" :src="battle.rightheadImg" />
+                <div class="side-info">
+                  <span class="side-name">{{ battle.rightName || "未知" }}</span>
+                  <span class="side-power">战力: {{ battle.rightpower }}</span>
+                  <span class="side-die"
+                    >掉将: {{ battle.rightDieHero }} 个</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-actions">
+          <n-button type="primary" @click="resetFightResult">重新切磋</n-button>
+          <n-button @click="fightResult.visible = false">关闭结果</n-button>
+        </div>
+      </div>
+
       <div class="hero-section">
         <h4>武将阵容</h4>
         <div
@@ -591,16 +755,6 @@
         </div>
         <div v-else class="empty-heroes">
           <p>未查询到武将信息</p>
-          <!-- 添加调试信息 -->
-          <div
-            v-if="playerInfo.heroList"
-            style="font-size: 12px; color: #999; margin-top: 10px"
-          >
-            武将列表为空
-          </div>
-          <div v-else style="font-size: 12px; color: #999; margin-top: 10px">
-            武将列表未定义
-          </div>
         </div>
       </div>
     </div>
@@ -760,7 +914,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, h, reactive, watch, nextTick } from "vue";
-import { useMessage, useDialog, NDataTable, NModal, NAvatar, NTag, NDescriptions, NDescriptionsItem, NButton, NSpace, NIcon, NGrid, NGi, NStatistic, NThing, NAlert, NCollapse, NCollapseItem, NCard } from "naive-ui";
+import { useMessage, useDialog, NDataTable, NModal, NAvatar, NTag, NDescriptions, NDescriptionsItem, NButton, NSpace, NIcon, NGrid, NGi, NStatistic, NThing, NAlert, NCollapse, NCollapseItem, NCard, NInput, NProgress } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import { Copy, Refresh, People, BarChart, Flame, Skull, Megaphone, Person, ShieldCheckmark, ChevronUp, ChevronDown } from "@vicons/ionicons5";
 import ClubHistoryRecords from "./ClubHistoryRecords.vue";
@@ -769,7 +923,7 @@ import CarScoreInfo from "./CarScoreInfo.vue";
 import { $emit } from "@/stores/events";
 import { HERO_DICT, legacycolor, HeroFillInfo, getLineupType, LINEUP_RULES } from "@/utils/HeroList";
 import html2canvas from 'html2canvas';
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { downloadCanvasAsImage, withDesktopExportLayout } from "@/utils/imageExport";
 
 const tokenStore = useTokenStore();
 const message = useMessage();
@@ -826,6 +980,37 @@ const batchLoading = ref(false);
 const isExporting = ref(false);
 const exportDom = ref(null);
 const expandedMembers = ref(new Set());
+
+const fightCount = ref(1);
+const isFightCountValid = ref(true);
+const fightProgress = reactive({
+  visible: false,
+  totalCount: 0,
+  completedCount: 0,
+  remainingCount: 0,
+  winCount: 0,
+  lossCount: 0,
+  percentage: 0,
+});
+const fightResult = reactive({
+  visible: false,
+  totalCount: 0,
+  winCount: 0,
+  lossCount: 0,
+  winRate: 0,
+  ourDieRate: 0,
+  enemyDieRate: 0,
+  resultCount: [],
+});
+const dieStats = reactive({
+  ourDieHeroGameCount: 0,
+  enemyDieHeroGameCount: 0,
+});
+
+const isSelfMember = (roleId) => {
+  const myId = tokenStore.gameData?.roleInfo?.role?.roleId;
+  return myId != null && Number(myId) === Number(roleId);
+};
 
 const toggleMemberExpand = (memberId) => {
   const next = new Set(expandedMembers.value);
@@ -1066,13 +1251,13 @@ const handleExportImage = async () => {
     }
 
     // 5. 用html2canvas渲染DOM为Canvas
-    const canvas = await html2canvas(exportDom.value, {
+    const canvas = await withDesktopExportLayout(exportDom.value, () => html2canvas(exportDom.value, {
       scale: 2, // 放大2倍，解决图片模糊问题
       useCORS: true, // 允许跨域图片
       backgroundColor: "#ffffff", // 避免透明背景
       logging: false, // 关闭控制台日志
       allowTaint: true, // 允许跨域图片污染画布
-    });
+    }));
 
     // 6. Canvas转图片链接并下载
     const dateStr = new Date().toLocaleDateString().replace(/\//g, "-");
@@ -1134,6 +1319,7 @@ const fetchTargetInfo = async (roleId) => {
     return;
   }
 
+  resetFightResult();
   queryLoading.value = true;
 
   try {
@@ -1235,6 +1421,168 @@ const fetchTargetInfo = async (roleId) => {
   } catch (error) {
     message.error(`查询失败: ${error.message}`);
     console.error("查询失败详细信息:", error);
+  } finally {
+    queryLoading.value = false;
+  }
+};
+
+const openMemberDuel = async (roleId) => {
+  if (isSelfMember(roleId)) {
+    message.warning("不能切磋自己");
+    return;
+  }
+  await fetchTargetInfo(roleId);
+};
+
+const validateFightCount = (value) => {
+  const num = parseInt(value);
+  isFightCountValid.value = !isNaN(num) && num >= 1 && num <= 100;
+};
+
+const resetFightResult = () => {
+  fightResult.visible = false;
+  fightProgress.visible = false;
+  dieStats.ourDieHeroGameCount = 0;
+  dieStats.enemyDieHeroGameCount = 0;
+  fightCount.value = 1;
+  validateFightCount(1);
+};
+
+const updateFightProgress = (completedCount, winCount, lossCount) => {
+  fightProgress.completedCount = completedCount;
+  fightProgress.winCount = winCount;
+  fightProgress.lossCount = lossCount;
+  fightProgress.remainingCount = fightProgress.totalCount - completedCount;
+  fightProgress.percentage = Math.round(
+    (completedCount / fightProgress.totalCount) * 100,
+  );
+};
+
+const calculateFinalResult = (winCount, lossCount, resultCount) => {
+  fightResult.totalCount = fightProgress.totalCount;
+  fightResult.winCount = winCount;
+  fightResult.lossCount = lossCount;
+  fightResult.winRate = Math.round((winCount / fightProgress.totalCount) * 100);
+  fightResult.ourDieRate = Math.round(
+    (dieStats.ourDieHeroGameCount / fightProgress.totalCount) * 100,
+  );
+  fightResult.enemyDieRate = Math.round(
+    (dieStats.enemyDieHeroGameCount / fightProgress.totalCount) * 100,
+  );
+  fightResult.resultCount = resultCount;
+  fightResult.visible = true;
+  fightProgress.visible = false;
+};
+
+const handleDuel = async () => {
+  if (!playerInfo.value) return;
+  if (isSelfMember(playerInfo.value.id)) {
+    message.warning("不能切磋自己");
+    return;
+  }
+
+  validateFightCount(fightCount.value);
+  if (!isFightCountValid.value) {
+    message.error("请输入有效的切磋次数 (1-100)");
+    return;
+  }
+
+  const totalCount = parseInt(fightCount.value);
+  message.info(`开始连续切磋: ${playerInfo.value.name}，共${totalCount}次`);
+
+  if (!tokenStore.selectedToken) {
+    message.warning("请先选择游戏角色");
+    return;
+  }
+
+  const tokenId = tokenStore.selectedToken.id;
+  const wsStatus = tokenStore.getWebSocketStatus(tokenId);
+  if (wsStatus !== "connected") {
+    message.error("WebSocket未连接，无法发起切磋");
+    return;
+  }
+
+  queryLoading.value = true;
+  fightProgress.visible = true;
+  fightProgress.totalCount = totalCount;
+  fightProgress.completedCount = 0;
+  fightProgress.remainingCount = totalCount;
+  fightProgress.winCount = 0;
+  fightProgress.lossCount = 0;
+  fightProgress.percentage = 0;
+  dieStats.ourDieHeroGameCount = 0;
+  dieStats.enemyDieHeroGameCount = 0;
+  fightResult.visible = false;
+
+  try {
+    let winCount = 0;
+    let lossCount = 0;
+    const resultCount = [];
+
+    for (let i = 0; i < totalCount; i++) {
+      message.info(`正在进行第 ${i + 1}/${totalCount} 场切磋`);
+
+      const result = await tokenStore.sendMessageWithPromise(
+        tokenId,
+        "fight_startpvp",
+        {
+          targetId: playerInfo.value.id,
+        },
+        10000,
+      );
+
+      if (result && result.battleData) {
+        let leftCount = 0;
+        let rightCount = 0;
+
+        if (result.battleData.result?.sponsor?.teamInfo) {
+          result.battleData.result.sponsor.teamInfo.forEach((item) => {
+            if (item.hp == 0) leftCount++;
+          });
+        }
+        if (result.battleData.result?.accept?.teamInfo) {
+          result.battleData.result.accept.teamInfo.forEach((item) => {
+            if (item.hp == 0) rightCount++;
+          });
+        }
+
+        const battleResult = {
+          isWin: result.battleData.result?.isWin || false,
+          leftName: result.battleData.leftTeam?.name || "未知",
+          leftheadImg: result.battleData.leftTeam?.headImg || "",
+          leftpower: formatNumber(result.battleData.leftTeam?.power || 0),
+          leftDieHero: leftCount,
+          rightName: result.battleData.rightTeam?.name || "未知",
+          rightheadImg: result.battleData.rightTeam?.headImg || "",
+          rightpower: formatNumber(result.battleData.rightTeam?.power || 0),
+          rightDieHero: rightCount,
+        };
+
+        resultCount.push(battleResult);
+        if (leftCount > 0) dieStats.ourDieHeroGameCount++;
+        if (rightCount > 0) dieStats.enemyDieHeroGameCount++;
+        if (battleResult.isWin) winCount++;
+        else lossCount++;
+
+        updateFightProgress(i + 1, winCount, lossCount);
+        if (i < totalCount - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+      } else {
+        message.warning(
+          `第 ${i + 1} 场切磋失败: ${result?.message || "未返回战斗数据"}`,
+        );
+        lossCount++;
+        updateFightProgress(i + 1, winCount, lossCount);
+      }
+    }
+
+    calculateFinalResult(winCount, lossCount, resultCount);
+    message.success(`连续切磋完成，共${totalCount}场`);
+  } catch (error) {
+    console.error("连续切磋失败:", error);
+    message.error(`连续切磋失败: ${error.message || "网络错误"}`);
+    fightProgress.visible = false;
   } finally {
     queryLoading.value = false;
   }
@@ -1373,27 +1721,43 @@ const memberColumns = computed(() => {
     });
   }
 
-  if (canKick.value && !isExporting.value) {
+  if (!isExporting.value) {
     cols.push({
       title: "操作",
       key: "actions",
-      width: 80,
+      width: 140,
       align: "center",
       render: (row) => {
-        if (row.job !== 1) {
-          return h(
+        const buttons = [
+          h(
             NButton,
             {
               size: "tiny",
-              type: "error",
+              type: "warning",
               ghost: true,
-              style: { fontSize: "12px" },
-              onClick: () => kickMember(row.roleId, row.name),
+              style: { fontSize: "12px", marginRight: "4px" },
+              disabled: isSelfMember(row.roleId),
+              onClick: () => openMemberDuel(row.roleId),
             },
-            { default: () => "踢出" },
+            { default: () => "切磋" },
+          ),
+        ];
+        if (canKick.value && row.job !== 1) {
+          buttons.push(
+            h(
+              NButton,
+              {
+                size: "tiny",
+                type: "error",
+                ghost: true,
+                style: { fontSize: "12px" },
+                onClick: () => kickMember(row.roleId, row.name),
+              },
+              { default: () => "踢出" },
+            ),
           );
         }
-        return null;
+        return h("div", { style: { display: "flex", justifyContent: "center", gap: "4px" } }, buttons);
       },
     });
   }
@@ -2133,6 +2497,177 @@ const formatNumber = (num) => {
   padding: 20px;
 }
 
+.action-section {
+  margin: 15px 0;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.action-section__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.fight-count-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fight-count-label {
+  font-size: var(--font-size-sm, 14px);
+  color: var(--text-primary, #333);
+  white-space: nowrap;
+}
+
+.fight-count-input {
+  width: 100px;
+}
+
+.fight-count-hint {
+  font-size: 12px;
+  color: #999;
+}
+
+.fight-progress {
+  margin: 15px 0;
+  padding: 15px;
+  background: var(--bg-secondary, #f9f9f9);
+  border-radius: 8px;
+  border: 1px solid var(--border-light, #eee);
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.progress-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.progress-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #666;
+  flex-wrap: wrap;
+}
+
+.fight-result {
+  margin: 15px 0;
+  padding: 15px;
+  background: var(--bg-secondary, #f9f9f9);
+  border-radius: 8px;
+  border: 1px solid var(--border-light, #eee);
+}
+
+.result-header {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-light, #eee);
+}
+
+.result-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.result-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  font-size: 13px;
+}
+
+.summary-value.win {
+  color: #18a058;
+  font-weight: 600;
+}
+
+.summary-value.loss {
+  color: #d03050;
+  font-weight: 600;
+}
+
+.battle-result-item {
+  margin-bottom: 10px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  border-left: 4px solid #ddd;
+
+  &.win {
+    border-left-color: #18a058;
+  }
+  &.loss {
+    border-left-color: #d03050;
+  }
+}
+
+.battle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.battle-details {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.battle-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.side-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  min-width: 0;
+}
+
+.side-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.battle-vs {
+  font-weight: 700;
+  color: #999;
+  flex-shrink: 0;
+}
+
+.result-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
 .player-info-main {
   display: flex;
   align-items: center;
@@ -2598,9 +3133,11 @@ const formatNumber = (num) => {
     .m-card__detail-actions {
       display: flex;
       gap: 8px;
+      flex-wrap: wrap;
 
       .n-button {
         flex: 1;
+        min-width: calc(33% - 8px);
       }
     }
   }

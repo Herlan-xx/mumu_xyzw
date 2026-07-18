@@ -624,7 +624,7 @@ import {
 import { Refresh, Copy, ChevronUp, ChevronDown } from "@vicons/ionicons5";
 import { useTokenStore } from "@/stores/tokenStore";
 import html2canvas from "html2canvas";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { downloadCanvasAsImage, withDesktopExportLayout } from "@/utils/imageExport";
 import { HERO_DICT, HeroFillInfo, legacycolor, getLineupType, LINEUP_RULES } from "@/utils/HeroList";
 import {
   getLastSaturday,
@@ -1652,13 +1652,13 @@ const handleExportImage = async () => {
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     // 5. 用html2canvas渲染DOM为Canvas
-    const canvas = await html2canvas(exportDom.value, {
+    const canvas = await withDesktopExportLayout(exportDom.value, () => html2canvas(exportDom.value, {
       scale: 2, // 放大2倍，解决图片模糊问题
       useCORS: true, // 允许跨域图片
       backgroundColor: "#ffffff", // 避免透明背景
       logging: false, // 关闭控制台日志
       allowTaint: true, // 允许跨域图片污染画布
-    });
+    }));
 
     // 6. Canvas转图片链接并下载
     const filename = `蟠桃园敌方信息_${queryDate.value.replace(/\//g, "-")}.png`;

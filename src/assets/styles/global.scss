@@ -735,3 +735,404 @@ img {
     overflow-y: auto !important;
   }
 }
+
+/* 共享：桌面表格 / 手机卡片双视图工具类 */
+.table-desktop {
+  min-width: 0;
+}
+
+.mobile-card-list {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .phone-stack-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    > * {
+      flex: 1 1 calc(50% - 8px);
+      min-width: 0;
+    }
+  }
+
+  .chip-rail {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+
+  .chip-rail > * {
+    flex-shrink: 0;
+  }
+
+  /* 榜单/俱乐部类页面：手机统一卡片布局 */
+  .club-warrank-container,
+  .records-container {
+    .header-section {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .header-title h2 {
+      font-size: 18px;
+      line-height: 1.3;
+    }
+
+    .stats-section {
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .function-section {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+
+      .function-left,
+      .function-right {
+        width: 100%;
+      }
+
+      .function-right {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: stretch;
+
+        .action-btn,
+        .n-button {
+          flex: 1 1 calc(50% - 8px);
+        }
+      }
+
+      .export-options {
+        width: 100%;
+      }
+
+      .n-radio-group {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+
+    .table-container,
+    .table-content {
+      overflow: visible;
+      height: auto;
+      flex: none;
+    }
+  }
+
+  .club-warrank-container,
+  .records-container,
+  .dual-list-layout {
+    .table-desktop {
+      display: none !important;
+    }
+
+    .mobile-card-list {
+      display: flex !important;
+      flex-direction: column;
+      gap: 10px;
+      padding: 8px 0 12px;
+    }
+  }
+
+  .m-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  .m-card__summary {
+    display: grid;
+    grid-template-columns: 36px 44px 1fr 24px;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    color: inherit;
+  }
+
+  .m-card__summary--static {
+    cursor: default;
+    grid-template-columns: 36px 44px 1fr;
+  }
+
+  .m-card__rank {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .rank-medal {
+      width: 32px;
+      height: 32px;
+      margin: 0;
+    }
+  }
+
+  .m-rank-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .m-card__avatar {
+    .member-avatar,
+    .member-avatar-placeholder {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+
+    .member-avatar-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-secondary);
+      font-weight: 700;
+    }
+  }
+
+  .m-card__main {
+    min-width: 0;
+  }
+
+  .m-card__title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .m-card__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .m-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .m-chip--alliance {
+    color: #fff;
+    background: var(--primary-color);
+  }
+
+  .m-card.alliance-large .m-chip--alliance {
+    background: var(--primary-color);
+  }
+
+  .m-card.alliance-dream .m-chip--alliance {
+    background: var(--success-color);
+  }
+
+  .m-card.alliance-xin-justice .m-chip--alliance {
+    background: var(--info-color);
+  }
+
+  .m-card.alliance-dragon .m-chip--alliance {
+    background: var(--error-color);
+  }
+
+  .m-card.alliance-xi .m-chip--alliance {
+    background: #9c27b0;
+  }
+
+  .m-card.alliance-unknown .m-chip--alliance {
+    background: var(--warning-color);
+  }
+
+  .m-card.alliance-other .m-chip--alliance {
+    background: var(--text-secondary);
+  }
+
+  .m-card__chevron {
+    color: var(--text-tertiary);
+  }
+
+  .m-card__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+    gap: 1px;
+    margin: 0 12px 12px;
+    background: var(--border-light);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .m-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 8px 4px;
+    background: var(--bg-secondary);
+    min-width: 0;
+  }
+
+  .m-stat__label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    line-height: 1.2;
+  }
+
+  .m-stat__value {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+    text-align: center;
+    word-break: break-all;
+  }
+
+  .m-stat__value--score {
+    color: var(--warning-color);
+  }
+
+  .m-stat__value--red {
+    color: var(--error-color);
+  }
+
+  .m-card__detail {
+    padding: 0 12px 12px;
+    border-top: 1px solid var(--border-light);
+  }
+
+  .m-card__detail-title {
+    padding: 10px 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .m-card__actions {
+    display: flex;
+    gap: 8px;
+    padding: 0 12px 12px;
+
+    .n-button {
+      flex: 1;
+    }
+  }
+
+  .m-hero-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .m-hero-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 4px;
+    border-radius: 10px;
+    background: var(--bg-secondary);
+    cursor: pointer;
+  }
+
+  .m-hero-item__avatar {
+    position: relative;
+
+    .hero-avatar,
+    .hero-avatar-placeholder {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+  }
+
+  .m-hero-item__beast {
+    position: absolute;
+    right: -4px;
+    bottom: -2px;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: #ee5a24;
+    color: #fff;
+    font-size: 9px;
+    line-height: 1.2;
+  }
+
+  .m-hero-item__name {
+    width: 100%;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .m-hero-item__meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 10px;
+    color: var(--text-secondary);
+  }
+
+  .m-card__notice {
+    margin: 10px 0 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+    word-break: break-all;
+  }
+}
+
+/* 图片导出：强制桌面表格，隐藏手机卡片（表格导出走文本，不受影响） */
+html.is-exporting-image,
+.is-exporting-image,
+.is-exporting {
+  .table-desktop {
+    display: block !important;
+  }
+
+  .mobile-card-list {
+    display: none !important;
+  }
+}

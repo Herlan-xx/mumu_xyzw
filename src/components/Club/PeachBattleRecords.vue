@@ -920,7 +920,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useMessage, NCheckboxGroup, NCheckbox, NRadioGroup, NRadioButton } from 'naive-ui'
 import { useTokenStore } from '@/stores/tokenStore'
 import html2canvas from 'html2canvas';
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { downloadCanvasAsImage, withDesktopExportLayout } from "@/utils/imageExport";
 import {
   Trophy,
   Refresh,
@@ -1302,12 +1302,12 @@ const exportToImage = async () => {
     });
 
     // 5. 用html2canvas渲染DOM为Canvas
-    const canvas = await html2canvas(exportDom.value, {
+    const canvas = await withDesktopExportLayout(exportDom.value, () => html2canvas(exportDom.value, {
       scale: 2, // 放大2倍，解决图片模糊问题
       useCORS: true, // 允许跨域图片（若DOM内有远程图片，需开启）
       backgroundColor: '#ffffff', // 避免透明背景（默认透明）
       logging: false // 关闭控制台日志
-    });
+    }));
 
     // 恢复战神榜内容区域的原始样式
     originalStyles.forEach(({ element, maxHeight, overflow }) => {

@@ -255,7 +255,7 @@
           <n-tab-pane name="serverrank" tab="区服榜" />
           <n-tab-pane name="toprank" tab="巅峰榜" />
           <n-tab-pane name="topclubrank" tab="俱乐部榜" />
-          <n-tab-pane name="goldclubrank" tab="黄金积分榜" />
+          <n-tab-pane name="goldclubrank" tab="黄金积分" />
           <n-tab-pane name="greatRouteRank" tab="伟大航路" />
         </n-tabs>
       </div>
@@ -767,6 +767,7 @@ onUnmounted(() => {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   max-width: 100%;
+  background: var(--bg-primary);
 }
 
 .section-tabs :deep(.n-tabs-nav-scroll-wrapper),
@@ -982,11 +983,28 @@ onUnmounted(() => {
   .game-status-container {
     grid-template-columns: minmax(0, 1fr);
     padding: var(--spacing-sm);
+    padding-bottom: calc(var(--spacing-sm) + 72px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .section-tabs {
+    position: sticky;
+    top: 52px;
+    z-index: 20;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0 var(--spacing-xs);
   }
 
   .section-tabs :deep(.n-tabs-tab) {
-    padding: var(--spacing-xs) var(--spacing-sm);
+    padding: 10px 12px;
     font-size: var(--font-size-sm);
+    min-height: 40px;
+  }
+
+  .sub-nav {
+    position: sticky;
+    top: 96px;
+    z-index: 19;
   }
 
   .status-card {

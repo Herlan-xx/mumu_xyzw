@@ -92,10 +92,13 @@
     </nav>
     <n-drawer
       v-model:show="isMobileMenuOpen"
-      placement="left"
-      style="width: 260px"
+      placement="bottom"
+      :height="'auto'"
+      :style="{ maxHeight: '70vh' }"
     >
       <div class="drawer-menu">
+        <div class="drawer-handle" />
+        <p class="drawer-title">更多功能</p>
         <router-link
           to="/admin/dashboard"
           class="drawer-item"
@@ -180,9 +183,50 @@
         </router-link>
       </div>
     </n-drawer>
+
     <div class="main">
       <router-view />
     </div>
+
+    <!-- 手机底部导航：拇指热区 -->
+    <nav class="mobile-bottom-nav" aria-label="主导航">
+      <router-link
+        to="/admin/dashboard"
+        class="bottom-nav-item"
+        active-class="active"
+      >
+        <n-icon size="22"><Home /></n-icon>
+        <span>首页</span>
+      </router-link>
+      <router-link
+        to="/admin/game-features"
+        class="bottom-nav-item"
+        active-class="active"
+      >
+        <n-icon size="22"><Cube /></n-icon>
+        <span>游戏</span>
+      </router-link>
+      <router-link to="/tokens" class="bottom-nav-item" active-class="active">
+        <n-icon size="22"><PersonCircle /></n-icon>
+        <span>Token</span>
+      </router-link>
+      <router-link
+        to="/admin/batch-daily-tasks"
+        class="bottom-nav-item"
+        active-class="active"
+      >
+        <n-icon size="22"><Layers /></n-icon>
+        <span>批量</span>
+      </router-link>
+      <button
+        type="button"
+        class="bottom-nav-item"
+        @click="isMobileMenuOpen = true"
+      >
+        <n-icon size="22"><Menu /></n-icon>
+        <span>更多</span>
+      </button>
+    </nav>
   </div>
 </template>
 
@@ -349,9 +393,53 @@ const handleUserAction = async (key) => {
   max-width: 100%;
 }
 
+.mobile-bottom-nav {
+  display: none;
+}
+
+.drawer-menu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  padding-bottom: calc(var(--spacing-md) + env(safe-area-inset-bottom, 0px));
+}
+
+.drawer-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border-medium, #ddd);
+  margin: 0 auto 8px;
+}
+
+.drawer-title {
+  margin: 0 0 4px;
+  padding: 0 var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+}
+
+.drawer-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 12px var(--spacing-md);
+  border-radius: var(--border-radius-medium);
+  color: var(--text-secondary);
+  text-decoration: none;
+  min-height: 44px;
+}
+
+.drawer-item.router-link-active {
+  background: var(--primary-color-light);
+  color: var(--primary-color);
+}
+
 @media (max-width: 768px) {
   .dashboard-nav {
     padding: 0 var(--spacing-sm);
+    padding-top: env(safe-area-inset-top, 0px);
   }
 
   .nav-item span {
@@ -368,7 +456,7 @@ const handleUserAction = async (key) => {
   }
 
   .nav-container {
-    height: 56px;
+    height: 52px;
   }
 
   .brand-logo {
@@ -394,29 +482,44 @@ const handleUserAction = async (key) => {
 
   .main {
     padding: 0;
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
   }
-}
 
-.drawer-menu {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md);
-}
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: calc(var(--z-sticky, 100) + 10);
+    background: var(--bg-primary);
+    border-top: 1px solid var(--border-light);
+    padding: 4px 2px calc(4px + env(safe-area-inset-bottom, 0px));
+    justify-content: space-around;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+  }
 
-.drawer-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-medium);
-  color: var(--text-secondary);
-  text-decoration: none;
-}
+  .bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 48px;
+    padding: 4px 2px;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    font-size: 11px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 
-.drawer-item.router-link-active {
-  background: var(--primary-color-light);
-  color: var(--primary-color);
+    &.active {
+      color: var(--primary-color);
+    }
+  }
 }
 
 /* 禁用样式：灰化、鼠标禁止、无hover效果 */

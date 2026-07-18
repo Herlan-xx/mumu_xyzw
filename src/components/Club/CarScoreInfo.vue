@@ -31,17 +31,57 @@
           </n-spin>
         </div>
 
-        <!-- 赛车列表 - 表格展示 -->
-        <div v-else-if="memberScores.length > 0" ref="exportDom" class="records-list">
-           <n-data-table
-            :columns="columns"
-            :data="memberScores"
-            :bordered="false"
-            size="small"
-            striped
-            :row-key="(row) => row.roleId"
-            :max-height="isExporting ? undefined : 600"
-          />
+        <!-- 赛车列表 -->
+        <div v-else-if="memberScores.length > 0" ref="exportDom" class="records-list dual-list-layout">
+          <div class="table-desktop">
+            <n-data-table
+              :columns="columns"
+              :data="memberScores"
+              :bordered="false"
+              size="small"
+              striped
+              :row-key="(row) => row.roleId"
+              :max-height="isExporting ? undefined : 600"
+            />
+          </div>
+          <div class="mobile-card-list">
+            <article
+              v-for="(row, index) in memberScores"
+              :key="`m-${row.roleId}`"
+              class="m-card"
+            >
+              <div class="m-card__summary m-card__summary--static">
+                <div class="m-card__rank">
+                  <span class="m-rank-num">{{ index + 1 }}</span>
+                </div>
+                <div class="m-card__avatar">
+                  <img
+                    v-if="row.headImg"
+                    :src="row.headImg"
+                    :alt="row.name"
+                    class="member-avatar"
+                  />
+                  <div v-else class="member-avatar-placeholder">
+                    {{ row.name?.charAt(0) || "?" }}
+                  </div>
+                </div>
+                <div class="m-card__main">
+                  <div class="m-card__title">{{ row.name }}</div>
+                  <div class="m-card__chips">
+                    <span class="m-chip">ID {{ row.roleId }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="m-card__stats">
+                <div class="m-stat">
+                  <span class="m-stat__label">赛车积分</span>
+                  <span class="m-stat__value m-stat__value--score">{{
+                    row.score || 0
+                  }}</span>
+                </div>
+              </div>
+            </article>
+          </div>
         </div>
         <div v-else class="empty-state">
            <n-empty description="暂无数据" />
@@ -81,17 +121,57 @@
           </n-spin>
         </div>
 
-        <!-- 赛车列表 - 表格展示 -->
-        <div v-else-if="memberScores.length > 0" ref="exportDom" class="records-list">
-           <n-data-table
-            :columns="columns"
-            :data="memberScores"
-            :bordered="false"
-            size="small"
-            striped
-            :row-key="(row) => row.roleId"
-            :max-height="isExporting ? undefined : 600"
-          />
+        <!-- 赛车列表 -->
+        <div v-else-if="memberScores.length > 0" ref="exportDom" class="records-list dual-list-layout">
+          <div class="table-desktop">
+            <n-data-table
+              :columns="columns"
+              :data="memberScores"
+              :bordered="false"
+              size="small"
+              striped
+              :row-key="(row) => row.roleId"
+              :max-height="isExporting ? undefined : 600"
+            />
+          </div>
+          <div class="mobile-card-list">
+            <article
+              v-for="(row, index) in memberScores"
+              :key="`m-${row.roleId}`"
+              class="m-card"
+            >
+              <div class="m-card__summary m-card__summary--static">
+                <div class="m-card__rank">
+                  <span class="m-rank-num">{{ index + 1 }}</span>
+                </div>
+                <div class="m-card__avatar">
+                  <img
+                    v-if="row.headImg"
+                    :src="row.headImg"
+                    :alt="row.name"
+                    class="member-avatar"
+                  />
+                  <div v-else class="member-avatar-placeholder">
+                    {{ row.name?.charAt(0) || "?" }}
+                  </div>
+                </div>
+                <div class="m-card__main">
+                  <div class="m-card__title">{{ row.name }}</div>
+                  <div class="m-card__chips">
+                    <span class="m-chip">ID {{ row.roleId }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="m-card__stats">
+                <div class="m-stat">
+                  <span class="m-stat__label">赛车积分</span>
+                  <span class="m-stat__value m-stat__value--score">{{
+                    row.score || 0
+                  }}</span>
+                </div>
+              </div>
+            </article>
+          </div>
         </div>
         <div v-else class="empty-state">
            <n-empty description="暂无数据" />
@@ -106,7 +186,7 @@ import { ref, computed, onMounted, h, nextTick } from 'vue'
 import { useMessage, NDataTable, NAvatar, NEmpty, NButton, NIcon } from 'naive-ui'
 import { useTokenStore } from '@/stores/tokenStore'
 import html2canvas from 'html2canvas';
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { downloadCanvasAsImage, withDesktopExportLayout } from "@/utils/imageExport";
 import {
   Trophy,
   Refresh,
@@ -418,12 +498,12 @@ const exportToImage = async () => {
   }
 
   // 5. 用html2canvas渲染DOM为Canvas
-  const canvas = await html2canvas(exportDom.value, {
+  const canvas = await withDesktopExportLayout(exportDom.value, () => html2canvas(exportDom.value, {
     scale: 2, // 放大2倍，解决图片模糊问题
     useCORS: true, // 允许跨域图片（若DOM内有远程图片，需开启）
     backgroundColor: '#ffffff', // 避免透明背景（默认透明）
     logging: false // 关闭控制台日志
-  });
+  }));
 
   // 6. Canvas转图片链接并下载
   const dateStr = gettoday();

@@ -1,5 +1,5 @@
 <template>
-  <div class="club-month-battle-records-container">
+  <div class="club-month-battle-records-container records-container">
     <div class="club-month-battle-records-card">
       <!-- 头部信息区 -->
       <div class="header-section">
@@ -80,9 +80,9 @@
             </div>
 
             <!-- 成员总战绩列表 -->
-            <div class="members-list">
+            <div class="members-list dual-list-layout">
               <h3>成员战绩详情</h3>
-              <div class="members-table-wrapper">
+              <div class="members-table-wrapper table-desktop">
                 <table class="members-table">
                   <thead>
                     <tr>
@@ -125,6 +125,102 @@
                     </tr>
                   </tbody>
                 </table>
+              </div>
+
+              <div class="mobile-card-list">
+                <article
+                  v-for="(member, index) in sortedMembers"
+                  :key="`mm-${member.roleId}`"
+                  class="m-card"
+                  :class="{ 'is-open': isMonthMemberExpanded(member.roleId) }"
+                >
+                  <button
+                    type="button"
+                    class="m-card__summary"
+                    @click="toggleMonthMemberExpand(member.roleId)"
+                  >
+                    <div class="m-card__rank">
+                      <span class="m-rank-num">{{ index + 1 }}</span>
+                    </div>
+                    <div class="m-card__avatar">
+                      <img
+                        v-if="member.headImg"
+                        :src="member.headImg"
+                        :alt="member.name"
+                        class="member-avatar"
+                        @error="handleImageError"
+                      />
+                      <div v-else class="member-avatar-placeholder">
+                        {{ member.name?.charAt(0) || "?" }}
+                      </div>
+                    </div>
+                    <div class="m-card__main">
+                      <div class="m-card__title">{{ member.name }}</div>
+                      <div class="m-card__chips">
+                        <span class="m-chip">本月总计</span>
+                      </div>
+                    </div>
+                    <n-icon size="18" class="m-card__chevron">
+                      <ChevronUp v-if="isMonthMemberExpanded(member.roleId)" />
+                      <ChevronDown v-else />
+                    </n-icon>
+                  </button>
+                  <div class="m-card__stats">
+                    <div class="m-stat">
+                      <span class="m-stat__label">击杀</span>
+                      <span class="m-stat__value m-stat__value--red">{{ member.totalWinCnt || 0 }}</span>
+                    </div>
+                    <div class="m-stat">
+                      <span class="m-stat__label">死亡</span>
+                      <span class="m-stat__value">{{ member.totalLoseCnt || 0 }}</span>
+                    </div>
+                    <div class="m-stat">
+                      <span class="m-stat__label">KD</span>
+                      <span class="m-stat__value">{{
+                        parseFloat(
+                          member.totalWinCnt && member.totalLoseCnt
+                            ? member.totalWinCnt / member.totalLoseCnt
+                            : 0
+                        ).toFixed(2)
+                      }}</span>
+                    </div>
+                    <div class="m-stat">
+                      <span class="m-stat__label">复活丹</span>
+                      <span class="m-stat__value m-stat__value--score">{{
+                        member.totalResurrection || 0
+                      }}</span>
+                    </div>
+                  </div>
+                  <div
+                    v-show="isMonthMemberExpanded(member.roleId)"
+                    class="m-card__detail"
+                  >
+                    <div class="m-card__detail-title">每日明细</div>
+                    <div
+                      v-for="date in battleDates"
+                      :key="date"
+                      class="month-day-row"
+                    >
+                      <div class="month-day-row__date">{{ formatShortDate(date) }}</div>
+                      <div class="month-day-row__stats">
+                        <span>击杀 {{ getMemberDailyStat(member, date, "winCnt") }}</span>
+                        <span>死亡 {{ getMemberDailyStat(member, date, "loseCnt") }}</span>
+                        <span
+                          >KD
+                          {{
+                            parseFloat(
+                              getMemberDailyStat(member, date, "winCnt") &&
+                                getMemberDailyStat(member, date, "loseCnt")
+                                ? getMemberDailyStat(member, date, "winCnt") /
+                                    getMemberDailyStat(member, date, "loseCnt")
+                                : 0
+                            ).toFixed(2)
+                          }}</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </article>
               </div>
             </div>
           </div>
@@ -457,10 +553,10 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useMessage, NCheckboxGroup, NCheckbox, NRadioGroup, NRadioButton } from 'naive-ui'
+import { useMessage, NCheckboxGroup, NCheckbox, NRadioGroup, NRadioButton, NIcon } from 'naive-ui'
 import { useTokenStore } from '@/stores/tokenStore'
 import html2canvas from 'html2canvas';
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { downloadCanvasAsImage, withDesktopExportLayout } from "@/utils/imageExport";
 import {
   Trophy,
   Refresh,
@@ -500,6 +596,15 @@ const showModal = computed({
 })
 
 const loading = ref(false)
+const expandedMonthMembers = ref(new Set())
+
+const isMonthMemberExpanded = (id) => expandedMonthMembers.value.has(id)
+const toggleMonthMemberExpand = (id) => {
+  const next = new Set(expandedMonthMembers.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  expandedMonthMembers.value = next
+}
 const monthlyBattleRecords = ref({})
 const expandedMembers = ref(new Set())
 const battleDates = ref([])
@@ -883,12 +988,12 @@ const exportToImage = async () => {
 
   try {
     // 用html2canvas渲染DOM为Canvas
-    const canvas = await html2canvas(exportDom.value, {
+    const canvas = await withDesktopExportLayout(exportDom.value, () => html2canvas(exportDom.value, {
       scale: 2, // 放大2倍，解决图片模糊问题
       useCORS: true, // 允许跨域图片（若DOM内有远程图片，需开启）
       backgroundColor: '#ffffff', // 避免透明背景（默认透明）
       logging: false // 关闭控制台日志
-    });
+    }));
 
     // Canvas转图片链接并下载
     const monthYear = currentMonthDisplay.value.replace('年', '-').replace('月', '');
@@ -1169,9 +1274,35 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
+  font-size: 14px;
+  font-weight: bold;
   flex-shrink: 0;
+}
+
+.month-day-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.month-day-row__date {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.month-day-row__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-primary);
 }
 
 .member-name {

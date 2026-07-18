@@ -99,8 +99,8 @@
              </div>
              
              <div class="style1-content">
-                <!-- 左侧表格 -->
-                <div class="style1-table-container">
+                <!-- 左侧表格：桌面 -->
+                <div class="style1-table-container table-desktop">
                   <table class="style1-table">
                     <thead>
                       <tr>
@@ -134,6 +134,58 @@
                       </tr>
                     </tbody>
                   </table>
+                </div>
+
+                <!-- 手机卡片列表 -->
+                <div class="mobile-card-list battle-mobile-list">
+                  <article
+                    v-for="(player, index) in battleRecords.roleDetailsList"
+                    :key="`m-${player.roleId}`"
+                    class="m-card"
+                  >
+                    <div class="m-card__summary m-card__summary--static">
+                      <div class="m-card__rank">
+                        <span v-if="index < 3" class="m-rank-num">{{ index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉' }}</span>
+                        <span v-else class="m-rank-num">{{ index + 1 }}</span>
+                      </div>
+                      <div class="m-card__avatar">
+                        <img
+                          v-if="player.headImg"
+                          :src="player.headImg"
+                          :alt="player.name"
+                          class="member-avatar"
+                          @error="handleImageError"
+                        />
+                        <div v-else class="member-avatar-placeholder">
+                          {{ player.name?.charAt(0) || "?" }}
+                        </div>
+                      </div>
+                      <div class="m-card__main">
+                        <div class="m-card__title">{{ player.name }}</div>
+                        <div class="m-card__chips">
+                          <span class="m-chip">KD {{ parseFloat((player.winCnt && player.loseCnt ? player.winCnt/player.loseCnt : 0)).toFixed(2) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="m-card__stats">
+                      <div class="m-stat">
+                        <span class="m-stat__label">击杀</span>
+                        <span class="m-stat__value m-stat__value--red">{{ player.winCnt || 0 }}</span>
+                      </div>
+                      <div class="m-stat">
+                        <span class="m-stat__label">死亡</span>
+                        <span class="m-stat__value">{{ player.loseCnt || 0 }}</span>
+                      </div>
+                      <div class="m-stat">
+                        <span class="m-stat__label">攻城</span>
+                        <span class="m-stat__value m-stat__value--score">{{ player.buildingCnt || 0 }}</span>
+                      </div>
+                      <div class="m-stat">
+                        <span class="m-stat__label">复活丹</span>
+                        <span class="m-stat__value">{{ Math.max((player.loseCnt || 0) - 6, 0) }}</span>
+                      </div>
+                    </div>
+                  </article>
                 </div>
 
                 <!-- 右侧统计 -->
@@ -367,7 +419,7 @@
              </div>
 
              <!-- 详细列表 -->
-             <div class="style2-table-wrapper">
+             <div class="style2-table-wrapper table-desktop">
                 <table class="style2-table">
                    <thead>
                       <tr>
@@ -417,6 +469,57 @@
                    </tbody>
                 </table>
              </div>
+
+             <div class="mobile-card-list battle-mobile-list">
+               <article
+                 v-for="(player, index) in battleRecords.roleDetailsList"
+                 :key="`s2m-${player.roleId}`"
+                 class="m-card"
+               >
+                 <div class="m-card__summary m-card__summary--static">
+                   <div class="m-card__rank">
+                     <span v-if="index < 3" class="m-rank-num">{{ index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉' }}</span>
+                     <span v-else class="m-rank-num">{{ index + 1 }}</span>
+                   </div>
+                   <div class="m-card__avatar">
+                     <img
+                       v-if="player.headImg"
+                       :src="player.headImg"
+                       :alt="player.name"
+                       class="member-avatar"
+                       @error="handleImageError"
+                     />
+                     <div v-else class="member-avatar-placeholder">
+                       {{ player.name?.charAt(0) || "?" }}
+                     </div>
+                   </div>
+                   <div class="m-card__main">
+                     <div class="m-card__title">{{ player.name }}</div>
+                     <div class="m-card__chips">
+                       <span class="m-chip">KD {{ parseFloat((player.winCnt && player.loseCnt ? player.winCnt/player.loseCnt : 0)).toFixed(2) }}</span>
+                     </div>
+                   </div>
+                 </div>
+                 <div class="m-card__stats">
+                   <div class="m-stat">
+                     <span class="m-stat__label">击杀</span>
+                     <span class="m-stat__value m-stat__value--red">{{ player.winCnt || 0 }}</span>
+                   </div>
+                   <div class="m-stat">
+                     <span class="m-stat__label">死亡</span>
+                     <span class="m-stat__value">{{ player.loseCnt || 0 }}</span>
+                   </div>
+                   <div class="m-stat">
+                     <span class="m-stat__label">攻城</span>
+                     <span class="m-stat__value m-stat__value--score">{{ player.buildingCnt || 0 }}</span>
+                   </div>
+                   <div class="m-stat">
+                     <span class="m-stat__label">复活丹</span>
+                     <span class="m-stat__value">{{ Math.max((player.loseCnt || 0) - 6, 0) }}</span>
+                   </div>
+                 </div>
+               </article>
+             </div>
           </div>
           
         </div>
@@ -440,7 +543,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useMessage, NCheckboxGroup, NCheckbox, NRadioGroup, NRadioButton } from 'naive-ui'
 import { useTokenStore } from '@/stores/tokenStore'
 import html2canvas from 'html2canvas';
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { downloadCanvasAsImage, withDesktopExportLayout } from "@/utils/imageExport";
 import {
   Refresh,
   Copy,
@@ -747,12 +850,12 @@ const exportToImage = async () => {
     });
 
     // 5. 用html2canvas渲染DOM为Canvas
-    const canvas = await html2canvas(exportDom.value, {
+    const canvas = await withDesktopExportLayout(exportDom.value, () => html2canvas(exportDom.value, {
       scale: 2, // 放大2倍，解决图片模糊问题
       useCORS: true, // 允许跨域图片（若DOM内有远程图片，需开启）
       backgroundColor: '#ffffff', // 避免透明背景（默认透明）
       logging: false // 关闭控制台日志
-    });
+    }));
 
     // 恢复战神榜内容区域的原始样式
     originalStyles.forEach(({ element, maxHeight, overflow }) => {
@@ -1500,5 +1603,9 @@ onMounted(() => {
   .mvp-crown { right: auto; left: 50px; }
   
   .style2-rankings-grid { grid-template-columns: 1fr; }
+
+  .battle-mobile-list {
+    width: 100%;
+  }
 }
 </style>

@@ -41,6 +41,75 @@ export const downloadCanvasAsImage = (canvas, filename) => {
   }
 };
 
+/**
+ * 图片导出时强制使用桌面表格布局（隐藏手机卡片）。
+ * 表格导出（文本/剪贴板）不走这里。
+ * @param {HTMLElement | null | undefined} rootEl
+ * @param {() => Promise<T>} fn
+ * @returns {Promise<T>}
+ * @template T
+ */
+export async function withDesktopExportLayout(rootEl, fn) {
+  if (!rootEl) {
+    return await fn();
+  }
+
+  const className = "is-exporting-image";
+  rootEl.classList.add(className);
+  document.documentElement.classList.add(className);
+
+  const backups = [];
+  const remember = (el) => {
+    backups.push({
+      el,
+      display: el.style.display,
+      minWidth: el.style.minWidth,
+      width: el.style.width,
+      overflow: el.style.overflow,
+      height: el.style.height,
+      maxHeight: el.style.maxHeight,
+    });
+  };
+
+  rootEl.querySelectorAll(".table-desktop").forEach((el) => {
+    remember(el);
+    el.style.display = "block";
+    el.style.minWidth = el.style.minWidth || "1100px";
+    el.style.overflow = "visible";
+    el.style.height = "auto";
+    el.style.maxHeight = "none";
+  });
+
+  rootEl.querySelectorAll(".mobile-card-list").forEach((el) => {
+    remember(el);
+    el.style.display = "none";
+  });
+
+  // 展开可能被限制高度的滚动区
+  rootEl.querySelectorAll(".n-data-table-base-table-body, .table-container, .table-content").forEach((el) => {
+    remember(el);
+    el.style.height = "auto";
+    el.style.maxHeight = "none";
+    el.style.overflow = "visible";
+  });
+
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    return await fn();
+  } finally {
+    backups.forEach(({ el, display, minWidth, width, overflow, height, maxHeight }) => {
+      el.style.display = display;
+      el.style.minWidth = minWidth;
+      el.style.width = width;
+      el.style.overflow = overflow;
+      el.style.height = height;
+      el.style.maxHeight = maxHeight;
+    });
+    rootEl.classList.remove(className);
+    document.documentElement.classList.remove(className);
+  }
+}
+
 const downloadBlob = (blob, filename) => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');

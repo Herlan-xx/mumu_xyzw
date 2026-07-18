@@ -65,73 +65,143 @@
         <!-- 巅峰数据列表 -->
         <div v-else-if="topranklist" class="table-container">
           <div ref="exportDom" class="export-container">
-            <!-- 表格标题行 -->
-            <div class="table-header">
-              <div class="table-cell rank">排名</div>
-              <div class="table-cell server">服务器</div>
-              <div class="table-cell avatar">头像</div>
-              <div class="table-cell role-id">玩家ID</div>
-              <div class="table-cell name">玩家名称</div>
-              <div class="table-cell power">战力</div>
-              <div class="table-cell score">巅峰积分</div>
+            <div class="table-desktop">
+              <!-- 表格标题行 -->
+              <div class="table-header">
+                <div class="table-cell rank">排名</div>
+                <div class="table-cell server">服务器</div>
+                <div class="table-cell avatar">头像</div>
+                <div class="table-cell role-id">玩家ID</div>
+                <div class="table-cell name">玩家名称</div>
+                <div class="table-cell power">战力</div>
+                <div class="table-cell score">巅峰积分</div>
+              </div>
+
+              <!-- 表格数据行 -->
+              <div
+                v-for="(memberData, memberId) in currentPageData"
+                :key="`desktop-${memberId}`"
+                class="table-row"
+              >
+                <div class="table-cell rank">
+                  <div class="rank-container">
+                    <span
+                      v-if="memberData.rank === 1"
+                      class="rank-medal gold"
+                    ></span>
+                    <span
+                      v-else-if="memberData.rank === 2"
+                      class="rank-medal silver"
+                    ></span>
+                    <span
+                      v-else-if="memberData.rank === 3"
+                      class="rank-medal bronze"
+                    ></span>
+                    <span v-else class="rank-number">{{ memberData.rank }}</span>
+                  </div>
+                </div>
+                <div class="table-cell server">{{ memberData.serverId }}</div>
+                <div class="table-cell avatar">
+                  <img
+                    v-if="memberData.headImg"
+                    :src="memberData.headImg"
+                    :alt="memberData.name"
+                    class="member-avatar"
+                    @error="handleImageError"
+                  />
+                  <div v-else class="member-avatar-placeholder">
+                    {{ memberData.name?.charAt(0) || "?" }}
+                  </div>
+                </div>
+                <div
+                  class="table-cell role-id clickable"
+                  @click="fetchTargetInfo(memberData.roleId)"
+                >
+                  {{ memberData.roleId }}
+                </div>
+                <div class="table-cell name">
+                  {{ memberData.name }}
+                  <n-tag
+                    v-if="memberData.legacy > 0"
+                    :style="{
+                      color: '#fff',
+                      backgroundColor: legacycolor[memberData.legacy]?.value,
+                    }"
+                    size="small"
+                    style="margin-left: 8px"
+                  >
+                    {{ legacycolor[memberData.legacy]?.name || "未知" }}
+                  </n-tag>
+                </div>
+                <div class="table-cell power">{{ memberData.power }}</div>
+                <div class="table-cell score">{{ memberData.score }}</div>
+              </div>
             </div>
 
-            <!-- 表格数据行 -->
-            <div
-              v-for="(memberData, memberId) in currentPageData"
-              :key="memberId"
-              class="table-row"
-            >
-              <div class="table-cell rank">
-                <div class="rank-container">
-                  <span
-                    v-if="memberData.rank === 1"
-                    class="rank-medal gold"
-                  ></span>
-                  <span
-                    v-else-if="memberData.rank === 2"
-                    class="rank-medal silver"
-                  ></span>
-                  <span
-                    v-else-if="memberData.rank === 3"
-                    class="rank-medal bronze"
-                  ></span>
-                  <span v-else class="rank-number">{{ memberData.rank }}</span>
+            <div class="mobile-card-list">
+              <article
+                v-for="(memberData, memberId) in currentPageData"
+                :key="`mobile-${memberId}`"
+                class="m-card"
+              >
+                <div class="m-card__summary m-card__summary--static">
+                  <div class="m-card__rank">
+                    <span
+                      v-if="memberData.rank === 1"
+                      class="rank-medal gold"
+                    ></span>
+                    <span
+                      v-else-if="memberData.rank === 2"
+                      class="rank-medal silver"
+                    ></span>
+                    <span
+                      v-else-if="memberData.rank === 3"
+                      class="rank-medal bronze"
+                    ></span>
+                    <span v-else class="m-rank-num">{{ memberData.rank }}</span>
+                  </div>
+                  <div class="m-card__avatar">
+                    <img
+                      v-if="memberData.headImg"
+                      :src="memberData.headImg"
+                      :alt="memberData.name"
+                      class="member-avatar"
+                      @error="handleImageError"
+                    />
+                    <div v-else class="member-avatar-placeholder">
+                      {{ memberData.name?.charAt(0) || "?" }}
+                    </div>
+                  </div>
+                  <div class="m-card__main">
+                    <div class="m-card__title">{{ memberData.name }}</div>
+                    <div class="m-card__chips">
+                      <span class="m-chip">S{{ memberData.serverId }}</span>
+                      <span class="m-chip">ID {{ memberData.roleId }}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div class="table-cell server">{{ memberData.serverId }}</div>
-              <div class="table-cell avatar">
-              <img
-                v-if="memberData.headImg"
-                :src="memberData.headImg"
-                :alt="memberData.name"
-                class="member-avatar"
-                @error="handleImageError"
-              />
-              <div v-else class="member-avatar-placeholder">  
-                {{ memberData.name?.charAt(0) || "?" }}
-              </div>
-            </div>
-              <div class="table-cell role-id clickable" @click="fetchTargetInfo(memberData.roleId)">
-                {{ memberData.roleId }}
-              </div>
-              <div class="table-cell name">
-                {{ memberData.name }}
-                      <n-tag
-                        v-if="memberData.legacy > 0"
-                        :style="{
-                          color: '#fff',
-                          backgroundColor:
-                            legacycolor[memberData.legacy]?.value,
-                        }"
-                        size="small"
-                        style="margin-left: 8px"
-                      >
-                        {{ legacycolor[memberData.legacy]?.name || "未知" }}
-                      </n-tag>
-              </div>
-              <div class="table-cell power">{{ memberData.power }}</div>
-              <div class="table-cell score">{{ memberData.score }}</div>
+                <div class="m-card__stats">
+                  <div class="m-stat">
+                    <span class="m-stat__label">战力</span>
+                    <span class="m-stat__value">{{ memberData.power }}</span>
+                  </div>
+                  <div class="m-stat">
+                    <span class="m-stat__label">巅峰积分</span>
+                    <span class="m-stat__value m-stat__value--score">{{
+                      memberData.score
+                    }}</span>
+                  </div>
+                </div>
+                <div class="m-card__actions">
+                  <n-button
+                    type="primary"
+                    size="small"
+                    @click="fetchTargetInfo(memberData.roleId)"
+                  >
+                    查看 / 切磋
+                  </n-button>
+                </div>
+              </article>
             </div>
           </div>
         </div>
@@ -155,9 +225,10 @@
     <!-- 玩家信息模态框 -->
     <n-modal
       v-model:show="showPlayerInfoModal"
+      class="player-duel-modal"
       preset="card"
       title="对手信息"
-      :style="{ width: '800px' }"
+      :style="{ width: 'min(800px, calc(100vw - 24px))' }"
       :bordered="false"
       :segmented="{ content: 'soft', footer: 'soft' }"
       :show-close="false"
@@ -609,7 +680,7 @@ import {
 } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import html2canvas from "html2canvas";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { downloadCanvasAsImage, withDesktopExportLayout } from "@/utils/imageExport";
 import { Refresh, Copy } from "@vicons/ionicons5";
 import { gettoday } from "@/utils/clubWarrankUtils";
 import { HERO_DICT, HeroFillInfo, legacycolor } from "@/utils/HeroList";
@@ -1228,7 +1299,7 @@ const exportToImage = async () => {
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     // 5. 用html2canvas渲染DOM为Canvas
-    const canvas = await html2canvas(exportDom.value, {
+    const canvas = await withDesktopExportLayout(exportDom.value, () => html2canvas(exportDom.value, {
       scale: 2, // 放大2倍，解决图片模糊问题
       useCORS: true, // 允许跨域图片（若DOM内有远程图片，需开启）
       backgroundColor: "#ffffff", // 避免透明背景（默认透明）
@@ -1238,7 +1309,7 @@ const exportToImage = async () => {
       windowWidth: exportDom.value.scrollWidth, // 设置窗口宽度
       windowHeight: exportDom.value.scrollHeight, // 设置窗口高度
       allowTaint: true, // 允许跨域图片污染画布
-    });
+    }));
 
     // 6. Canvas转图片链接并下载
     const filename = queryDate.value.replace("/", "年").replace("/", "月") + "日巅峰榜信息.png";

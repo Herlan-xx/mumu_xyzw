@@ -999,19 +999,59 @@ onUnmounted(() => {
 }
 
 // 响应式调整
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .header-section {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px !important;
+
+    .header-title p {
+      display: none;
+    }
 
     .stats-section {
       width: 100%;
-      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-start;
+
+      .stat-item {
+        flex-wrap: wrap;
+        gap: 6px;
+
+        .stat-label {
+          display: none;
+        }
+
+        .n-button {
+          flex: 1 1 calc(33.33% - 6px);
+          justify-content: center;
+        }
+      }
     }
   }
 
+  .main-content-layout {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
   .map-container-wrapper {
-    height: 400px !important;
+    height: min(52vh, 420px) !important;
+    min-height: 280px;
+    flex: none !important;
+  }
+
+  .side-info-panel {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 42vh;
+    border-left: none !important;
+    border-top: 1px solid #eee;
+    box-shadow: none !important;
   }
 }
 </style>

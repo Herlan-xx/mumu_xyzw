@@ -548,7 +548,7 @@ import {
   legacycolor,
 } from "@/utils/HeroList";
 import html2canvas from "html2canvas";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { downloadCanvasAsImage, withDesktopExportLayout } from "@/utils/imageExport";
 
 // 确保legacycolor在模板中可用
 const legacyColorMap = legacycolor;
@@ -981,14 +981,14 @@ const handleExport1 = async () => {
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     // 生成canvas并导出
-    const canvas = await html2canvas(exportDom.value, {
+    const canvas = await withDesktopExportLayout(exportDom.value, () => html2canvas(exportDom.value, {
       scale: 2, // 放大2倍，解决图片模糊问题
       useCORS: true, // 允许跨域图片（若DOM内有远程图片，需开启）
       backgroundColor: "#ffffff", // 避免透明背景（默认透明）
       logging: false, // 关闭控制台日志
       allowTaint: true, // 允许跨域图片
       taintTest: false, // 关闭跨域测试
-    });
+    }));
 
     // 恢复原始样式
     if (resultList) {

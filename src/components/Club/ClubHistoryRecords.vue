@@ -1,17 +1,51 @@
 <template>
   <div>
     <!-- Inline 模式：卡片渲染 -->
-    <div v-if="inline" class="inline-wrapper" ref="exportDom">
+    <div v-if="inline" class="inline-wrapper dual-list-layout" ref="exportDom">
       <div class="battle-records-content">
-        <n-data-table
-          :columns="columns"
-          :data="tableData"
-          :loading="loading"
-          :pagination="pagination"
-          :bordered="false"
-          size="small"
-          :max-height="400"
-        />
+        <div class="table-desktop">
+          <n-data-table
+            :columns="columns"
+            :data="tableData"
+            :loading="loading"
+            :pagination="pagination"
+            :bordered="false"
+            size="small"
+            :max-height="isExporting ? undefined : 400"
+          />
+        </div>
+        <div class="mobile-card-list">
+          <div class="history-mobile-toolbar">
+            <n-button size="small" :disabled="loading" @click="handleRefresh">
+              刷新
+            </n-button>
+            <n-button
+              size="small"
+              type="primary"
+              :disabled="loading"
+              @click="handleExportImage"
+            >
+              导出图片
+            </n-button>
+          </div>
+          <article
+            v-for="(row, index) in tableData"
+            :key="`hist-${index}`"
+            class="m-card"
+          >
+            <div class="m-card__summary m-card__summary--static history-summary">
+              <div class="m-card__rank">
+                <span class="m-rank-num">{{ row.rank }}</span>
+              </div>
+              <div class="m-card__main">
+                <div class="m-card__title">{{ legionWarTypesw(row.legionWarType) }}</div>
+                <div class="m-card__chips">
+                  <span class="m-chip">{{ row.warDate }}</span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
       </div>
     </div>
 
@@ -57,7 +91,7 @@ import { ref, computed, onMounted, h, nextTick } from "vue";
 import { useMessage, NDataTable, NTag, NButton, NIcon } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import html2canvas from 'html2canvas';
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { downloadCanvasAsImage, withDesktopExportLayout } from "@/utils/imageExport";
 import {
   Trophy,
   Refresh,
@@ -300,13 +334,13 @@ const handleExportImage = async () => {
     }
 
     // 用html2canvas渲染DOM为Canvas
-    const canvas = await html2canvas(exportDom.value, {
+    const canvas = await withDesktopExportLayout(exportDom.value, () => html2canvas(exportDom.value, {
       scale: 2, // 放大2倍，解决图片模糊问题
       useCORS: true, // 允许跨域图片
       backgroundColor: "#ffffff", // 避免透明背景
       logging: false, // 关闭控制台日志
       allowTaint: true, // 允许跨域图片污染画布
-    });
+    }));
 
     // Canvas转图片链接并下载
     const dateStr = new Date().toLocaleDateString().replace(/\//g, "-");
@@ -698,6 +732,16 @@ onMounted(() => {
   &.battle-loss {
     border-left-color: #ef4444;
   }
+}
+
+.history-mobile-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.history-summary {
+  grid-template-columns: 36px 1fr !important;
 }
 
 .battle-participants {

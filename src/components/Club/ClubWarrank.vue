@@ -979,7 +979,7 @@ import {
 } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import html2canvas from "html2canvas";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { downloadCanvasAsImage, withDesktopExportLayout } from "@/utils/imageExport";
 import {
   Trophy,
   Refresh,
@@ -2392,7 +2392,7 @@ const exportToImage = async () => {
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     // 5. 用html2canvas渲染DOM为Canvas
-    const canvas = await html2canvas(exportDom.value, {
+    const canvas = await withDesktopExportLayout(exportDom.value, () => html2canvas(exportDom.value, {
       scale: 2, // 放大2倍，解决图片模糊问题
       useCORS: true, // 允许跨域图片（若DOM内有远程图片，需开启）
       backgroundColor: "#ffffff", // 避免透明背景（默认透明）
@@ -2402,7 +2402,7 @@ const exportToImage = async () => {
       windowWidth: exportDom.value.scrollWidth, // 设置窗口宽度
       windowHeight: exportDom.value.scrollHeight, // 设置窗口高度
       allowTaint: true, // 允许跨域图片污染画布
-    });
+    }));
 
     // 6. Canvas转图片链接并下载
     const filename =

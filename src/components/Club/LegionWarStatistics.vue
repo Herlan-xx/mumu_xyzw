@@ -27,202 +27,302 @@
 
       <!-- 功能操作区 -->
       <div class="function-section">
-        <div class="function-left">
-          <n-radio-group v-model:value="viewMode" size="small">
-            <n-radio-button value="legion">战队战况</n-radio-button>
-            <n-radio-button value="individual">个人战况</n-radio-button>
-            <n-radio-button value="all_individual">全部战况</n-radio-button>
-          </n-radio-group>
-          
-          <div class="stat-item">
-            <span class="stat-label">连接状态:</span>
-            <n-tag :type="isConnected ? 'success' : 'error'">
-              {{ isConnected ? "已连接" : "未连接" }}
-            </n-tag>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">战场数据:</span>
-            <n-tag :type="battlefieldId ? 'success' : 'error'">{{ battlefieldId ? "已成功获取战场数据" : "未获取到战场数据" }}</n-tag>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">更新时间:</span>
-            <n-tag type="warning">{{ lastUpdateTime || "等待数据..." }}</n-tag>
-          </div>
+        <div class="view-mode-chips">
+          <button
+            type="button"
+            class="mode-chip"
+            :class="{ active: viewMode === 'legion' }"
+            @click="viewMode = 'legion'"
+          >
+            战队
+          </button>
+          <button
+            type="button"
+            class="mode-chip"
+            :class="{ active: viewMode === 'individual' }"
+            @click="viewMode = 'individual'"
+          >
+            个人
+          </button>
+          <button
+            type="button"
+            class="mode-chip"
+            :class="{ active: viewMode === 'all_individual' }"
+            @click="viewMode = 'all_individual'"
+          >
+            全部
+          </button>
+        </div>
 
-          <n-button 
-            size="small" 
-            :type="isEntireBattlefield ? 'success' : 'warning'" 
+        <div class="status-row">
+          <n-tag size="small" :type="isConnected ? 'success' : 'error'">
+            {{ isConnected ? "已连接" : "未连接" }}
+          </n-tag>
+          <n-tag size="small" :type="battlefieldId ? 'success' : 'error'">
+            {{ battlefieldId ? "有战场" : "无战场" }}
+          </n-tag>
+          <n-tag size="small" type="warning">{{
+            lastUpdateTime || "等待数据"
+          }}</n-tag>
+        </div>
+
+        <div class="action-row">
+          <n-button
+            size="small"
+            :type="isEntireBattlefield ? 'success' : 'warning'"
             :loading="connecting"
             @click="toggleBattlefieldEntry"
           >
             <template #icon>
-              <n-icon>
-                <LogInOutline />
-              </n-icon>
+              <n-icon><LogInOutline /></n-icon>
             </template>
-            {{ isEntireBattlefield ? "已进入战场" : "进入战场" }}
+            {{ isEntireBattlefield ? "已进入" : "进入战场" }}
           </n-button>
 
-          <n-button 
-            size="small" 
-            type="primary" 
+          <n-button
+            size="small"
+            type="primary"
             :disabled="!isConnected && !isEntireBattlefield"
             @click="refreshData"
-            style="margin-right: 8px"
           >
             <template #icon>
-              <n-icon>
-                <RefreshOutline />
-              </n-icon>
+              <n-icon><RefreshOutline /></n-icon>
             </template>
-            刷新数据
+            刷新
           </n-button>
-          
-          <n-button 
-            size="small" 
-            type="info" 
+
+          <n-button
+            size="small"
+            type="info"
             :loading="exporting"
             @click="exportImage"
             :disabled="!validData"
           >
             <template #icon>
-              <n-icon>
-                <ImageOutline />
-              </n-icon>
+              <n-icon><ImageOutline /></n-icon>
             </template>
-            导出图片
+            导出图
           </n-button>
 
-          <n-button 
-            size="small" 
-            type="success" 
+          <n-button
+            size="small"
+            type="success"
             @click="exportExcel"
             :disabled="!validData"
           >
             <template #icon>
-              <n-icon>
-                <DownloadOutline />
-              </n-icon>
+              <n-icon><DownloadOutline /></n-icon>
             </template>
-            导出表格
+            导出表
           </n-button>
         </div>
       </div>
 
       <!-- 表格内容区 -->
       <div class="table-content">
-        <!-- 战队战况表格 -->
-        <n-data-table
-          v-if="viewMode === 'legion'"
-          :columns="legionColumns"
-          :data="legionData"
-          :loading="false"
-          :pagination="{ pageSize: 20 }"
-          size="small"
-          :max-height="tableMaxHeight"
-          :row-class-name="rowClassName"
-        >
-          <template #empty>
-            <div class="empty-state">
-              <template v-if="connecting">
-                <div class="loading-container">
-                  <n-spin size="large" />
-                  <p>正在连接战场...</p>
-                </div>
-              </template>
-              <template v-else-if="isConnected">
-                <div class="loading-container">
-                  <n-spin size="large" />
-                  <p>正在获取战况数据...</p>
-                </div>
-              </template>
-              <template v-else>
-                <n-empty description="暂无战场数据，请手动刷新数据">
-                  <template #icon>
-                    <n-icon>
-                      <StatsChart />
-                    </n-icon>
-                  </template>
-                </n-empty>
-              </template>
-            </div>
-          </template>
-        </n-data-table>
+        <!-- 桌面表格 -->
+        <div class="table-desktop">
+          <n-data-table
+            v-if="viewMode === 'legion'"
+            :columns="legionColumns"
+            :data="legionData"
+            :loading="false"
+            :pagination="{ pageSize: 20 }"
+            size="small"
+            :max-height="tableMaxHeight"
+            :row-class-name="rowClassName"
+          >
+            <template #empty>
+              <div class="empty-state">
+                <template v-if="connecting">
+                  <div class="loading-container">
+                    <n-spin size="large" />
+                    <p>正在连接战场...</p>
+                  </div>
+                </template>
+                <template v-else-if="isConnected">
+                  <div class="loading-container">
+                    <n-spin size="large" />
+                    <p>正在获取战况数据...</p>
+                  </div>
+                </template>
+                <template v-else>
+                  <n-empty description="暂无战场数据，请手动刷新数据">
+                    <template #icon>
+                      <n-icon><StatsChart /></n-icon>
+                    </template>
+                  </n-empty>
+                </template>
+              </div>
+            </template>
+          </n-data-table>
 
-        <!-- 个人战况表格 -->
-        <n-data-table
-          v-else-if="viewMode === 'individual'"
-          :columns="individualColumns"
-          :data="individualData"
-          :loading="false"
-          :pagination="{ pageSize: 30 }"
-          size="small"
-          :max-height="tableMaxHeight"
-        >
-          <template #empty>
-            <div class="empty-state">
-              <template v-if="connecting">
-                <div class="loading-container">
-                  <n-spin size="large" />
-                  <p>正在连接战场...</p>
-                </div>
-              </template>
-              <template v-else-if="isConnected">
-                <div class="loading-container">
-                  <n-spin size="large" />
-                  <p>正在获取战况数据...</p>
-                </div>
-              </template>
-              <template v-else>
-                <n-empty description="暂无战场数据，请手动刷新数据">
-                  <template #icon>
-                    <n-icon>
-                      <StatsChart />
-                    </n-icon>
-                  </template>
-                </n-empty>
-              </template>
-            </div>
-          </template>
-        </n-data-table>
+          <n-data-table
+            v-else-if="viewMode === 'individual'"
+            :columns="individualColumns"
+            :data="individualData"
+            :loading="false"
+            :pagination="{ pageSize: 30 }"
+            size="small"
+            :max-height="tableMaxHeight"
+          >
+            <template #empty>
+              <div class="empty-state">
+                <template v-if="connecting">
+                  <div class="loading-container">
+                    <n-spin size="large" />
+                    <p>正在连接战场...</p>
+                  </div>
+                </template>
+                <template v-else-if="isConnected">
+                  <div class="loading-container">
+                    <n-spin size="large" />
+                    <p>正在获取战况数据...</p>
+                  </div>
+                </template>
+                <template v-else>
+                  <n-empty description="暂无战场数据，请手动刷新数据">
+                    <template #icon>
+                      <n-icon><StatsChart /></n-icon>
+                    </template>
+                  </n-empty>
+                </template>
+              </div>
+            </template>
+          </n-data-table>
 
-        <!-- 全部战况表格 -->
-        <n-data-table
-          v-else-if="viewMode === 'all_individual'"
-          :columns="allIndividualColumns"
-          :data="allIndividualData"
-          :loading="false"
-          :pagination="false"
-          size="small"
-          :row-class-name="rowClassName"
-          :max-height="600"
-        >
-          <template #empty>
-            <div class="empty-state">
-              <template v-if="connecting">
-                <div class="loading-container">
-                  <n-spin size="large" />
-                  <p>正在连接战场...</p>
-                </div>
-              </template>
-              <template v-else-if="isConnected">
-                <div class="loading-container">
-                  <n-spin size="large" />
-                  <p>正在获取战况数据...</p>
-                </div>
-              </template>
-              <template v-else>
-                <n-empty description="暂无战场数据，请手动刷新数据">
-                  <template #icon>
-                    <n-icon>
-                      <StatsChart />
-                    </n-icon>
-                  </template>
-                </n-empty>
-              </template>
+          <n-data-table
+            v-else-if="viewMode === 'all_individual'"
+            :columns="allIndividualColumns"
+            :data="allIndividualData"
+            :loading="false"
+            :pagination="false"
+            size="small"
+            :row-class-name="rowClassName"
+            :max-height="600"
+          >
+            <template #empty>
+              <div class="empty-state">
+                <template v-if="connecting">
+                  <div class="loading-container">
+                    <n-spin size="large" />
+                    <p>正在连接战场...</p>
+                  </div>
+                </template>
+                <template v-else-if="isConnected">
+                  <div class="loading-container">
+                    <n-spin size="large" />
+                    <p>正在获取战况数据...</p>
+                  </div>
+                </template>
+                <template v-else>
+                  <n-empty description="暂无战场数据，请手动刷新数据">
+                    <template #icon>
+                      <n-icon><StatsChart /></n-icon>
+                    </template>
+                  </n-empty>
+                </template>
+              </div>
+            </template>
+          </n-data-table>
+        </div>
+
+        <!-- 手机卡片列表 -->
+        <div class="mobile-card-list">
+          <div v-if="connecting || (isConnected && !currentMobileList.length)" class="empty-state">
+            <div class="loading-container">
+              <n-spin size="large" />
+              <p>{{ connecting ? "正在连接战场..." : "正在获取战况数据..." }}</p>
             </div>
+          </div>
+          <n-empty
+            v-else-if="!currentMobileList.length"
+            description="暂无战场数据，请手动刷新"
+          />
+          <template v-else>
+            <article
+              v-for="(row, index) in currentMobileList"
+              :key="row.key ?? `${viewMode}-${index}`"
+              class="m-card"
+              :class="{ 'is-mine': isMyRow(row) }"
+            >
+              <div class="m-card__summary">
+                <div class="m-card__rank">
+                  <span
+                    v-if="index < 3"
+                    class="rank-medal"
+                    :class="['gold', 'silver', 'bronze'][index]"
+                    >{{ index + 1 }}</span
+                  >
+                  <span v-else class="m-rank-num">{{ index + 1 }}</span>
+                </div>
+                <div class="m-card__main">
+                  <div class="m-card__title">{{ row.name }}</div>
+                  <div class="m-card__chips" v-if="viewMode === 'all_individual'">
+                    <span class="m-chip">{{ row.clubName }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="m-card__stats" v-if="viewMode === 'legion'">
+                <div class="m-stat">
+                  <span class="m-stat__label">积分</span>
+                  <span class="m-stat__value">{{ row.score }}</span>
+                </div>
+                <div class="m-stat">
+                  <span class="m-stat__label">击杀</span>
+                  <span class="m-stat__value">{{ row.killCnt }}</span>
+                </div>
+                <div class="m-stat">
+                  <span class="m-stat__label">红数</span>
+                  <span class="m-stat__value m-stat__value--red">{{
+                    row.redCount
+                  }}</span>
+                </div>
+                <div class="m-stat">
+                  <span class="m-stat__label">人数</span>
+                  <span class="m-stat__value"
+                    >{{ row.participantsCount }}/30</span
+                  >
+                </div>
+              </div>
+
+              <div class="m-card__stats" v-else>
+                <div class="m-stat">
+                  <span class="m-stat__label">击杀</span>
+                  <span class="m-stat__value">{{ row.kill }}</span>
+                </div>
+                <div class="m-stat">
+                  <span class="m-stat__label">死亡</span>
+                  <span class="m-stat__value">{{ row.die }}</span>
+                </div>
+                <div class="m-stat">
+                  <span class="m-stat__label">K/D</span>
+                  <span class="m-stat__value">{{ row.kd }}</span>
+                </div>
+                <div class="m-stat">
+                  <span class="m-stat__label">积分</span>
+                  <span class="m-stat__value">{{ row.score }}</span>
+                </div>
+              </div>
+
+              <div class="m-card__extra" v-if="viewMode === 'legion'">
+                <span>复活 {{ row.reviveCount }}/150</span>
+                <span>战力 {{ formatPower(row.power) }}</span>
+                <span>丹 {{ row.danCount }}</span>
+                <span
+                  >四圣 {{ row.blessingCount }}个/{{ row.blessingScore }}分</span
+                >
+              </div>
+              <div class="m-card__extra" v-else>
+                <span>复活 {{ row.revive }}/5</span>
+                <span>刨地 {{ row.digGround }}</span>
+                <span>丹 {{ row.dan }}</span>
+                <span v-if="row.lastState">状态 {{ row.lastState }}</span>
+              </div>
+            </article>
           </template>
-        </n-data-table>
+        </div>
       </div>
       </template>
     </div>
@@ -239,6 +339,7 @@ import { getCurrentTimeByFormat } from "@/utils/DateTimeUtils";
 import { isLegionWarAccessible } from "@/utils/clubBattleUtils";
 import { storeToRefs } from "pinia";
 import html2canvas from "html2canvas";
+import { withDesktopExportLayout } from "@/utils/imageExport";
 import * as XLSX from "xlsx";
 import { 
   LogInOutline, 
@@ -353,11 +454,13 @@ const exportImage = async () => {
     // 等待一点时间确保渲染完成
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    const canvas = await html2canvas(element, {
-      useCORS: true,
-      scale: 2, // Higher quality
-      backgroundColor: "#ffffff",
-    });
+    const canvas = await withDesktopExportLayout(element, () =>
+      html2canvas(element, {
+        useCORS: true,
+        scale: 2, // Higher quality
+        backgroundColor: "#ffffff",
+      })
+    );
 
     const link = document.createElement("a");
     const modeName = viewMode.value === "legion" ? "俱乐部战况" : (viewMode.value === "individual" ? "个人战况" : "全部战况");
@@ -429,6 +532,18 @@ const allIndividualData = computed(() => {
     })
     .sort((a, b) => b.kill - a.kill);
 });
+
+const currentMobileList = computed(() => {
+  if (viewMode.value === "legion") return legionData.value;
+  if (viewMode.value === "individual") return individualData.value;
+  return allIndividualData.value;
+});
+
+const isMyRow = (row) => {
+  const myLegionId = tokenStore.gameData?.roleInfo?.role?.legionId;
+  if (row.legionId !== undefined) return row.legionId == myLegionId;
+  return row.id == myLegionId;
+};
 
 // 表格列定义
 const legionColumns = [
@@ -717,37 +832,62 @@ onUnmounted(() => {
       padding: 12px 16px;
       background: #f9f9f9;
       border-bottom: 1px solid #eee;
-      
-      .function-left {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
-        
-        .stat-item {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          
-          .stat-label {
-            font-size: 12px;
-            color: #666;
-          }
-        }
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .view-mode-chips {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .mode-chip {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid #e5e5e5;
+      background: #fff;
+      color: #666;
+      font-size: 13px;
+      cursor: pointer;
+
+      &.active {
+        background: #18a058;
+        border-color: #18a058;
+        color: #fff;
       }
     }
-    
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
     .table-content {
       padding: 16px;
       min-height: 400px;
-      
+
+      .mobile-card-list {
+        display: none;
+      }
+
       .empty-state {
         display: flex;
         justify-content: center;
         align-items: center;
         height: 300px;
         color: #999;
-        
+
         .loading-container {
           display: flex;
           flex-direction: column;
@@ -765,11 +905,172 @@ onUnmounted(() => {
   }
 }
 
-// 响应式调整
-@media (max-width: 768px) {
-  .header-section {
-    flex-direction: column;
-    align-items: flex-start;
+@media (max-width: 1024px) {
+  .legion-war-statistics-container {
+    padding: 4px;
+
+    .legion-war-statistics-card {
+      .access-denied-container {
+        height: auto;
+        min-height: 320px;
+        padding: 24px 16px;
+      }
+
+      .header-section {
+        padding: 12px;
+
+        .header-title p {
+          display: none;
+        }
+      }
+
+      .function-section {
+        padding: 10px 12px;
+      }
+
+      .action-row {
+        .n-button {
+          flex: 1 1 calc(50% - 8px);
+          justify-content: center;
+        }
+      }
+
+      .table-content {
+        padding: 8px 10px 12px;
+        min-height: 0;
+
+        .table-desktop {
+          display: none;
+        }
+
+        .mobile-card-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .empty-state {
+          height: 200px;
+        }
+      }
+
+      .m-card {
+        background: var(--bg-primary, #fff);
+        border: 1px solid var(--border-light, #eee);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+        &.is-mine {
+          border-color: #18a058;
+          background: linear-gradient(180deg, #f0fff5 0%, #fff 45%);
+        }
+      }
+
+      .m-card__summary {
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        gap: 10px;
+        align-items: center;
+        padding: 12px;
+      }
+
+      .m-card__rank {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .m-rank-num {
+        font-size: 14px;
+        font-weight: 700;
+        color: #999;
+      }
+
+      .rank-medal {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: #fff;
+
+        &.gold {
+          background: linear-gradient(135deg, #ffd666, #d48806);
+        }
+        &.silver {
+          background: linear-gradient(135deg, #d9d9d9, #8c8c8c);
+        }
+        &.bronze {
+          background: linear-gradient(135deg, #d48806, #ad6800);
+        }
+      }
+
+      .m-card__title {
+        font-size: 15px;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .m-card__chips {
+        margin-top: 4px;
+      }
+
+      .m-chip {
+        font-size: 11px;
+        padding: 1px 6px;
+        border-radius: 4px;
+        background: #f5f5f5;
+        color: #666;
+      }
+
+      .m-card__stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: #eee;
+        border-top: 1px solid #eee;
+      }
+
+      .m-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 8px 4px;
+        background: #fafafa;
+      }
+
+      .m-stat__label {
+        font-size: 11px;
+        color: #999;
+      }
+
+      .m-stat__value {
+        font-size: 13px;
+        font-weight: 600;
+        color: #333;
+
+        &--red {
+          color: #ff4d4f;
+        }
+      }
+
+      .m-card__extra {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px 12px 10px;
+        font-size: 11px;
+        color: #888;
+        border-top: 1px solid #f0f0f0;
+      }
+    }
   }
 }
 </style>
